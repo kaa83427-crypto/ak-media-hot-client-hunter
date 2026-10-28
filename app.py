@@ -27,13 +27,14 @@ category_input = st.sidebar.selectbox(
 secret_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not secret_key:
   api_key = st.sidebar.text_input(
-      "🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक"
+      "🔑 Google API Key टाका", type="password", help="AIzaSyDREuk48B8oOLFMm-fEo9PKeQpUpX2t83k"
   )
 else:
   api_key = secret_key
 
 
-def fetch_google_places(location, category, key):
+# Google Places API (New) Query Function
+def fetch_places_new_api(location, category, key):
   if not key:
     st.error(
         "⚠️ Google API Key सापडली नाही! डाव्या बाजूला 'Google API Key' टाका किंवा"
@@ -41,34 +42,49 @@ def fetch_google_places(location, category, key):
     )
     return pd.DataFrame()
 
-  url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
-  query = f"{category} in {location}"
-  params = {"query": query, "key": key}
+  # Places API (New) Endpoint
+  url = "https://places.googleapis.com/v1/places:searchText"
+
+  headers = {
+      "Content-Type": "json",
+      "X-Goog-Api-Key": key,
+      "X-Goog-FieldMask": (
+          "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating"
+      ),
+  }
+
+  payload = {"textQuery": f"{category} in {location}"}
 
   try:
-    response = requests.get(url, params=params)
+    response = requests.post(url, headers=headers, json=payload)
     data = response.json()
 
-    # जर API मध्ये काही इश्यू असेल तर तो एरर दाखवा
-    if data.get("status") != "OK":
+    if "error" in data:
       st.error(
-          f"❌ Google API Error: {data.get('status')} - "
-          f"{data.get('error_message', 'API Key किंवा Places API इनेबल आहे का ते तपासा.')}"
+          f"❌ Google API Error: {data['error'].get('status')} - "
+          f"{data['error'].get('message')}"
       )
       return pd.DataFrame()
 
-    results = data.get("results", [])
+    places = data.get("places", [])
     businesses = []
 
-    for place in results[:15]:  # टॉप १५ निकाल फेच करा
-      name = place.get("name")
-      phone = "919876543210"  # डीफॉल्ट संपर्क
+    for place in places:
+      name = place.get("displayName", {}).get("text", "Unknown Business")
+      phone = place.get("nationalPhoneNumber", "919876543210")
+
+      # Phone formatting for WhatsApp
+      clean_phone = "".join(filter(str.isdigit, str(phone)))
+      if len(clean_phone) < 10:
+        clean_phone = "919876543210"
+      elif not clean_phone.startswith("91"):
+        clean_phone = "91" + clean_phone[-10:]
 
       businesses.append({
           "Location": location,
           "Category": category,
           "Business Name": name,
-          "Phone": phone,
+          "Phone": clean_phone,
           "Rating": place.get("rating", "N/A"),
           "Last Post": str(
               datetime.date.today() - datetime.timedelta(days=16)
@@ -83,8 +99,10 @@ def fetch_google_places(location, category, key):
 
 
 if st.sidebar.button("🎯 Hunt Clients Now"):
-  with st.spinner("🔍 Fetching real-time businesses via Google API..."):
-    df = fetch_google_places(location_input, category_input, api_key)
+  with st.spinner(
+      "🔍 Fetching real-time businesses via Google Places API (New)..."
+  ):
+    df = fetch_places_new_api(location_input, category_input, api_key)
     st.session_state["leads_data"] = df
 
 if "leads_data" in st.session_state and not st.session_state[
