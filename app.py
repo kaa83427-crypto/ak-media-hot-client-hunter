@@ -4,21 +4,8 @@ import pandas as pd
 import requests
 import streamlit as st
 
-# Page Config (Modern SaaS Dark Mode look)
 st.set_page_config(
     page_title="AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
-)
-
-# Custom CSS
-st.markdown(
-    """
-    <style>
-    .main { background-color: #0e1117; }
-    h1 { color: #00E676; text-align: center; font-family: 'sans-serif'; }
-    .stButton>button { background-color: #00E676; color: black; font-weight: bold; border-radius: 8px; }
-    </style>
-""",
-    unsafe_allow_html=True,
 )
 
 st.title("🎯 AK MEDIA - Hot Client Hunter (Nashik District)")
@@ -27,78 +14,76 @@ st.write(
     " पिच पाठवा!"
 )
 
-# Sidebar Filters
+# Sidebar Setup
 st.sidebar.header("🔍 Search Filters")
 location_input = st.sidebar.text_input(
-    "लोकेशन / एरिया टाका (Location)", value="Chandwad, Nashik"
+    "लोकेशन / एरिया टाका", value="Chandwad, Nashik"
 )
 category_input = st.sidebar.selectbox(
-    "कॅटेगरी (Business Category)",
-    ["Cafe", "Gym", "Salon", "Restaurant", "Clothing Store"],
+    "कॅटेगरी", ["Cafe", "Gym", "Salon", "Restaurant", "Clothing Store"]
 )
 
-# Fetch API Key from Streamlit Secrets or direct input
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
+# Secrets मधून API Key शोधणे किंवा Sidebar मध्ये Input देणे
+secret_key = st.secrets.get("GOOGLE_API_KEY", "")
+if not secret_key:
+  api_key = st.sidebar.text_input(
+      "🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक"
+  )
+else:
+  api_key = secret_key
 
 
-# Function to fetch real businesses via Google Places API
 def fetch_google_places(location, category, key):
   if not key:
     st.error(
-        "⚠️ Google API Key सापडली नाही! कृपया Streamlit Secrets मध्ये GOOGLE_API_KEY"
-        " सेट करा."
+        "⚠️ Google API Key सापडली नाही! डाव्या बाजूला 'Google API Key' टाका किंवा"
+        " Streamlit Secrets मध्ये सेट करा."
     )
     return pd.DataFrame()
 
-  # Google Text Search API Endpoint
   url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
   query = f"{category} in {location}"
   params = {"query": query, "key": key}
 
-  response = requests.get(url, params=params)
-  data = response.json()
+  try:
+    response = requests.get(url, params=params)
+    data = response.json()
 
-  results = data.get("results", [])
-  businesses = []
+    # जर API मध्ये काही इश्यू असेल तर तो एरर दाखवा
+    if data.get("status") != "OK":
+      st.error(
+          f"❌ Google API Error: {data.get('status')} - "
+          f"{data.get('error_message', 'API Key किंवा Places API इनेबल आहे का ते तपासा.')}"
+      )
+      return pd.DataFrame()
 
-  for place in results:
-    place_id = place.get("place_id")
+    results = data.get("results", [])
+    businesses = []
 
-    # Get Place Details (Phone number & Website)
-    details_url = "https://maps.googleapis.com/maps/api/place/details/json"
-    details_params = {
-        "place_id": place_id,
-        "fields": "name,formatted_phone_number,website,rating",
-        "key": key,
-    }
-    details_res = requests.get(details_url, params=details_params).json()
-    place_details = details_res.get("result", {})
+    for place in results[:15]:  # टॉप १५ निकाल फेच करा
+      name = place.get("name")
+      phone = "919876543210"  # डीफॉल्ट संपर्क
 
-    phone = place_details.get("formatted_phone_number", "919876543210")
-    # Clean Phone Number for WhatsApp
-    clean_phone = "".join(filter(str.isdigit, str(phone)))
-    if len(clean_phone) < 10:
-      clean_phone = "919876543210"
-    elif not clean_phone.startswith("91"):
-      clean_phone = "91" + clean_phone[-10:]
+      businesses.append({
+          "Location": location,
+          "Category": category,
+          "Business Name": name,
+          "Phone": phone,
+          "Rating": place.get("rating", "N/A"),
+          "Last Post": str(
+              datetime.date.today() - datetime.timedelta(days=16)
+          ),
+          "Status": "HOT",
+      })
 
-    businesses.append({
-        "Location": location,
-        "Category": category,
-        "Business Name": place.get("name"),
-        "Phone": clean_phone,
-        "Rating": place.get("rating", "N/A"),
-        "Last Post": str(
-            datetime.date.today() - datetime.timedelta(days=16)
-        ),  # Instagram check logic tag
-        "Status": "HOT",
-    })
-
-  return pd.DataFrame(businesses)
+    return pd.DataFrame(businesses)
+  except Exception as e:
+    st.error(f"❌ Connection Error: {str(e)}")
+    return pd.DataFrame()
 
 
 if st.sidebar.button("🎯 Hunt Clients Now"):
-  with st.spinner("🔍 Fetching real-time businesses via Google Places API..."):
+  with st.spinner("🔍 Fetching real-time businesses via Google API..."):
     df = fetch_google_places(location_input, category_input, api_key)
     st.session_state["leads_data"] = df
 
@@ -109,8 +94,7 @@ if "leads_data" in st.session_state and not st.session_state[
 
   col1, col2, col3 = st.columns(3)
   col1.metric("Total Businesses Found", len(df))
-  hot_count = len(df[df["Status"] == "HOT"])
-  col2.metric("🔥 HOT Clients (Action Ready)", hot_count)
+  col2.metric("🔥 HOT Clients", len(df[df["Status"] == "HOT"]))
   col3.metric("Target Region", location_input)
 
   st.markdown("---")
@@ -145,6 +129,6 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला लोकेशन (उदा. 'Chandwad, Nashik') टाका आणि **'Hunt"
-      " Clients Now'** बटणावर क्लिक करा!"
+      "👈 डाव्या बाजूला लोकेशन टाका आणि **'Hunt Clients Now'** बटणावर क्लिक"
+      " करा!"
   )
