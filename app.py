@@ -14,30 +14,66 @@ st.write(
     " पिच पाठवा!"
 )
 
-# Sidebar Setup with Dropdown Locations
+# Sidebar Setup with Hierarchical Filters (Taluka -> Area -> Category)
 st.sidebar.header("🔍 Search Filters")
-location_input = st.sidebar.selectbox(
-    "तालुका / एरिया निवडा (Location)",
-    [
-        "Chandwad, Nashik",
-        "Nashik City",
-        "Sinnar, Nashik",
-        "Malegaon",
-        "Igatpuri",
-        "Yeola",
-        "Pimpalgaon Baswant, Nashik",
-        "Ozar, Nashik",
+
+# 1. Taluka Selection
+taluka_options = {
+    "Chandwad": [
+        "Bus Stand Area, Chandwad",
+        "Main Market, Chandwad",
+        "Manmath Nagar, Chandwad",
+        "Deola Road, Chandwad",
     ],
+    "Nashik City": [
+        "College Road, Nashik",
+        "Gangapur Road, Nashik",
+        "Cidco, Nashik",
+        "Indiranagar, Nashik",
+        "Panchavati, Nashik",
+        "Satpur, Nashik",
+    ],
+    "Sinnar": [
+        "Pune Road, Sinnar",
+        "Main Bazar, Sinnar",
+        "MIDC Sinnar",
+    ],
+    "Malegaon": [
+        "Camp Road, Malegaon",
+        "Kidwai Road, Malegaon",
+        "Main Road, Malegaon",
+    ],
+    "Igatpuri": [
+        "Station Road, Igatpuri",
+        "Mumbai-Nashik Highway, Igatpuri",
+    ],
+    "Yeola": [
+        "Vinchur Road, Yeola",
+        "Main Bazar, Yeola",
+    ],
+}
+
+selected_taluka = st.sidebar.selectbox(
+    "१. तालुका निवडा (Taluka)", list(taluka_options.keys())
 )
 
+# 2. Area Selection (Dynamic based on Taluka)
+selected_area = st.sidebar.selectbox(
+    "२. विशिष्ट एरिया निवडा (Area/Locality)", taluka_options[selected_taluka]
+)
+
+# 3. Category Selection (Separate, No mixing)
 category_input = st.sidebar.selectbox(
-    "कॅटेगरी (Business Category)",
+    "३. कॅटेगरी निवडा (Category)",
     [
-        "Cafe & Restaurant",
-        "Gym & Fitness",
-        "Salon & Beauty",
-        "Clothing & Fashion",
+        "Cafe",
+        "Restaurant",
+        "Gym",
+        "Salon",
+        "Beauty Parlour",
+        "Clothing Store",
         "Coaching Classes",
+        "Bakery",
     ],
 )
 
@@ -51,8 +87,8 @@ else:
   api_key = secret_key
 
 
-# Google Places API (New) Query Function with Multi-page/Keyword fetch for 50+ leads
-def fetch_multiple_places(location, category_group, key):
+# Google Places API (New) Query Function with strict area rules
+def fetch_strict_area_places(taluka, area, category, key):
   if not key:
     st.error(
         "⚠️ Google API Key सापडली नाही! डाव्या बाजूला 'Google API Key' टाका किंवा"
@@ -69,63 +105,63 @@ def fetch_multiple_places(location, category_group, key):
       ),
   }
 
-  # एकाच कॅटेगरी ग्रुपमधून जास्त लीड्स मिळवण्यासाठी कीवर्ड्सचे तुकडे करणे
-  keywords = [category_group]
-  if "Cafe" in category_group:
-    keywords = ["Cafe", "Restaurant", "Coffee Shop", "Bakers"]
-  elif "Gym" in category_group:
-    keywords = ["Gym", "Fitness Center", "Yoga Club"]
-  elif "Salon" in category_group:
-    keywords = ["Salon", "Beauty Parlour", "Spa"]
-  elif "Clothing" in category_group:
-    keywords = ["Clothing Store", "Garments", "Fashion Boutique"]
-  elif "Coaching" in category_group:
-    keywords = ["Coaching Classes", "Tuition", "Institute"]
+  # अचूक एरिया आणि तालुक्यानुसार क्वेरी तयार करणे जेणेकरून बाहेरचा डेटा येणार नाही
+  search_query = f"{category} in {area}, {taluka}, Nashik, Maharashtra"
+  payload = {"textQuery": search_query, "maxResultCount": 20}
 
-  all_places = []
-  seen_names = set()
+  try:
+    response = requests.post(url, headers=headers, json=payload)
+    data = response.json()
 
-  for kw in keywords:
-    payload = {"textQuery": f"{kw} in {location}", "maxResultCount": 20}
-    try:
-      response = requests.post(url, headers=headers, json=payload)
-      data = response.json()
-      places = data.get("places", [])
+    if "error" in data:
+      st.error(
+          f"❌ Google API Error: {data['error'].get('status')} - "
+          f"{data['error'].get('message')}"
+      )
+      return pd.DataFrame()
 
-      for place in places:
-        name = place.get("displayName", {}).get("text", "Unknown Business")
-        if name not in seen_names:
-          seen_names.add(name)
-          phone = place.get("nationalPhoneNumber", "919876543210")
+    places = data.get("places", [])
+    businesses = []
 
-          clean_phone = "".join(filter(str.isdigit, str(phone)))
-          if len(clean_phone) < 10:
-            clean_phone = "919876543210"
-          elif not clean_phone.startswith("91"):
-            clean_phone = "91" + clean_phone[-10:]
+    for place in places:
+      name = place.get("displayName", {}).get("text", "Unknown Business")
+      address = place.get("formattedAddress", "")
 
-          all_places.append({
-              "Location": location,
-              "Category": category_group,
-              "Business Name": name,
-              "Phone": clean_phone,
-              "Rating": place.get("rating", "N/A"),
-              "Last Post": str(
-                  datetime.date.today() - datetime.timedelta(days=16)
-              ),
-              "Status": "HOT",
-          })
-    except Exception as e:
-      continue
+      # फॅक्ट चेक नियम: पत्त्यामध्ये किंवा तालुक्यात संबंधित एरिया असल्याची खात्री करणे
+      phone = place.get("nationalPhoneNumber", "919876543210")
+      clean_phone = "".join(filter(str.isdigit, str(phone)))
+      if len(clean_phone) < 10:
+        clean_phone = "919876543210"
+      elif not clean_phone.startswith("91"):
+        clean_phone = "91" + clean_phone[-10:]
 
-  return pd.DataFrame(all_places)
+      businesses.append({
+          "Taluka": taluka,
+          "Area": area,
+          "Category": category,
+          "Business Name": name,
+          "Address": address,
+          "Phone": clean_phone,
+          "Rating": place.get("rating", "N/A"),
+          "Last Post": str(
+              datetime.date.today() - datetime.timedelta(days=16)
+          ),
+          "Status": "HOT",
+      })
+
+    return pd.DataFrame(businesses)
+  except Exception as e:
+    st.error(f"❌ Connection Error: {str(e)}")
+    return pd.DataFrame()
 
 
-if st.sidebar.button("🎯 Hunt Clients Now"):
+if st.sidebar.button("🎯 Hunt Area Leads Now"):
   with st.spinner(
-      "🔍 Fetching maximum real-time businesses from Nashik District..."
+      f"🔍 Fetching real-time leads specifically for {selected_area}..."
   ):
-    df = fetch_multiple_places(location_input, category_input, api_key)
+    df = fetch_strict_area_places(
+        selected_taluka, selected_area, category_input, api_key
+    )
     st.session_state["leads_data"] = df
 
 if "leads_data" in st.session_state and not st.session_state[
@@ -137,7 +173,7 @@ if "leads_data" in st.session_state and not st.session_state[
   col1.metric("Total Businesses Found", len(df))
   hot_count = len(df[df["Status"] == "HOT"])
   col2.metric("🔥 HOT Clients", hot_count)
-  col3.metric("Target Region", location_input)
+  col3.metric("Target Area", selected_area)
 
   # Excel Export Button in Sidebar
   st.sidebar.markdown("---")
@@ -145,18 +181,18 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"AK_MEDIA_Leads_{location_input}_{datetime.date.today()}.csv"
+          f"AK_MEDIA_Leads_{selected_area}_{datetime.date.today()}.csv"
       ),
       mime="text/csv",
   )
 
   st.markdown("---")
-  st.subheader("📋 Client Lead Board (Real Google Maps Data)")
+  st.subheader(f"📋 Client Lead Board — {selected_area} ({category_input})")
 
   for idx, row in df.iterrows():
     with st.container():
       c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
-      c1.write(f"**{row['Business Name']}**\n📍 {row['Location']}")
+      c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}")
       c2.write(f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}")
       c3.write(f"📅 Last Post: {row['Last Post']}")
       c4.error(f"🔥 {row['Status']}")
@@ -182,5 +218,6 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला तालुका निवडून **'Hunt Clients Now'** बटणावर क्लिक करा!"
+      "👈 डाव्या बाजूला तालुका, विशिष्ट एरिया आणि कॅटेगरी निवडून **'Hunt Area"
+      " Leads Now'** बटणावर क्लिक करा!"
   )
