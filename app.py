@@ -14,7 +14,7 @@ st.write(
     " पिच पाठवा!"
 )
 
-# Sidebar Setup with Hierarchical Filters (Taluka -> Area -> Category)
+# Sidebar Setup with Hierarchical Filters
 st.sidebar.header("🔍 Search Filters")
 
 # 1. Taluka Selection
@@ -57,12 +57,12 @@ selected_taluka = st.sidebar.selectbox(
     "१. तालुका निवडा (Taluka)", list(taluka_options.keys())
 )
 
-# 2. Area Selection (Dynamic based on Taluka)
+# 2. Area Selection
 selected_area = st.sidebar.selectbox(
-    "२. विशिष्ट एरिया निवडा (Area/Locality)", taluka_options[selected_taluka]
+    "२. विशिष्ट एरिया निवडा (Area)", taluka_options[selected_taluka]
 )
 
-# 3. Category Selection (Separate, No mixing)
+# 3. Category Selection
 category_input = st.sidebar.selectbox(
     "३. कॅटेगरी निवडा (Category)",
     [
@@ -77,6 +77,12 @@ category_input = st.sidebar.selectbox(
     ],
 )
 
+# 4. Multi-Language Pitch Selection (नवी सोय)
+pitch_language = st.sidebar.selectbox(
+    "🌐 पिचची भाषा निवडा (Pitch Language)",
+    ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
+)
+
 # Secrets मधून API Key शोधणे किंवा Sidebar मध्ये Input देणे
 secret_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not secret_key:
@@ -87,7 +93,7 @@ else:
   api_key = secret_key
 
 
-# Google Places API (New) Query Function with strict area rules
+# Google Places API (New) Query Function
 def fetch_strict_area_places(taluka, area, category, key):
   if not key:
     st.error(
@@ -105,7 +111,6 @@ def fetch_strict_area_places(taluka, area, category, key):
       ),
   }
 
-  # अचूक एरिया आणि तालुक्यानुसार क्वेरी तयार करणे जेणेकरून बाहेरचा डेटा येणार नाही
   search_query = f"{category} in {area}, {taluka}, Nashik, Maharashtra"
   payload = {"textQuery": search_query, "maxResultCount": 20}
 
@@ -127,7 +132,6 @@ def fetch_strict_area_places(taluka, area, category, key):
       name = place.get("displayName", {}).get("text", "Unknown Business")
       address = place.get("formattedAddress", "")
 
-      # फॅक्ट चेक नियम: पत्त्यामध्ये किंवा तालुक्यात संबंधित एरिया असल्याची खात्री करणे
       phone = place.get("nationalPhoneNumber", "919876543210")
       clean_phone = "".join(filter(str.isdigit, str(phone)))
       if len(clean_phone) < 10:
@@ -175,7 +179,7 @@ if "leads_data" in st.session_state and not st.session_state[
   col2.metric("🔥 HOT Clients", hot_count)
   col3.metric("Target Area", selected_area)
 
-  # Excel Export Button in Sidebar
+  # Excel Export Button
   st.sidebar.markdown("---")
   st.sidebar.download_button(
       label="📥 Export Leads to Excel/CSV",
@@ -197,11 +201,39 @@ if "leads_data" in st.session_state and not st.session_state[
       c3.write(f"📅 Last Post: {row['Last Post']}")
       c4.error(f"🔥 {row['Status']}")
 
-      pitch_msg = (
-          f"Hi {row['Business Name']}, maine aapka Insta dekha, kafi dino se"
-          " post nahi kiya. Hum AK MEDIA se Nashik businesses ka page handle"
-          " karte hain. Free audit kar du?"
-      )
+      # Dynamic Multi-language Pitch logic
+      if "Marathi" in pitch_language:
+        pitch_msg = (
+            f"नमस्कार {row['Business Name']},\n\nमी AK MEDIA (नाशिक) वरून"
+            " बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५"
+            " दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश"
+            f" कस्टमर्स ऑनलाइन शोधूनच {row['Category']} मध्ये येतात."
+            " सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने संभाव्य ग्राहक प्रतिस्पर्ध्यांकडे"
+            " जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील व्यवसायांचे ब्रँडिंग आणि"
+            " सोशल मीडिया मॅनेज करतो. तुमच्या पेजचा मोफत सोशल मीडिया ऑडिट रिपोर्ट"
+            " हवा असल्यास नक्की कळवा!"
+        )
+      elif "Hindi" in pitch_language:
+        pitch_msg = (
+            f"नमस्ते {row['Business Name']},\n\nमैं AK MEDIA (नाशिक) से बात कर"
+            " रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से कोई नई"
+            " पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
+            f" ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स"
+            " छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
+            " मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट"
+            " भेज दें?"
+        )
+      else:
+        pitch_msg = (
+            f"Hi {row['Business Name']},\n\nI'm reaching out from AK MEDIA"
+            " Nashik. I noticed that your social media handles haven't been"
+            " active recently.\n\nMost customers nowadays check social media"
+            f" presence before visiting a {row['Category']}. Maintaining an"
+            " active online presence helps attract new clients regularly.\n\nWe"
+            " manage end-to-end digital branding for businesses across Nashik."
+            " Would you like a Free Social Media Audit report for your page?"
+        )
+
       encoded_msg = urllib.parse.quote(pitch_msg)
       wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
 
@@ -218,6 +250,6 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला तालुका, विशिष्ट एरिया आणि कॅटेगरी निवडून **'Hunt Area"
+      "👈 डाव्या बाजूला तालुका, एरिया, कॅटेगरी आणि **भाषा** निवडून **'Hunt Area"
       " Leads Now'** बटणावर क्लिक करा!"
   )
