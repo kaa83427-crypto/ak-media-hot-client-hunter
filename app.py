@@ -14,26 +14,38 @@ st.write(
     " पिच पाठवा!"
 )
 
-# Sidebar Setup
+# Sidebar Setup with Dropdown Locations
 st.sidebar.header("🔍 Search Filters")
-location_input = st.sidebar.text_input(
-    "लोकेशन / एरिया टाका", value="Chandwad, Nashik"
+location_input = st.sidebar.selectbox(
+    "तालुका / एरिया निवडा (Location)",
+    [
+        "Chandwad, Nashik",
+        "Nashik City",
+        "Sinnar, Nashik",
+        "Malegaon",
+        "Igatpuri",
+        "Yeola",
+        "Pimpalgaon Baswant, Nashik",
+        "Ozar, Nashik",
+    ],
 )
+
 category_input = st.sidebar.selectbox(
-    "कॅटेगरी", ["Cafe", "Gym", "Salon", "Restaurant", "Clothing Store"]
+    "कॅटेगरी (Business Category)",
+    ["Cafe", "Gym", "Salon", "Restaurant", "Clothing Store"],
 )
 
 # Secrets मधून API Key शोधणे किंवा Sidebar मध्ये Input देणे
 secret_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not secret_key:
   api_key = st.sidebar.text_input(
-      "🔑 Google API Key टाका", type="password", help="AIzaSyDREuk48B8oOLFMm-fEo9PKeQpUpX2t83k"
+      "🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक"
   )
 else:
   api_key = secret_key
 
 
-# Google Places API (New) Query Function
+# Google Places API (New) Query Function for maximum results
 def fetch_places_new_api(location, category, key):
   if not key:
     st.error(
@@ -42,7 +54,6 @@ def fetch_places_new_api(location, category, key):
     )
     return pd.DataFrame()
 
-  # Places API (New) Endpoint
   url = "https://places.googleapis.com/v1/places:searchText"
 
   headers = {
@@ -53,7 +64,7 @@ def fetch_places_new_api(location, category, key):
       ),
   }
 
-  payload = {"textQuery": f"{category} in {location}"}
+  payload = {"textQuery": f"{category} in {location}", "maxResultCount": 20}
 
   try:
     response = requests.post(url, headers=headers, json=payload)
@@ -73,7 +84,6 @@ def fetch_places_new_api(location, category, key):
       name = place.get("displayName", {}).get("text", "Unknown Business")
       phone = place.get("nationalPhoneNumber", "919876543210")
 
-      # Phone formatting for WhatsApp
       clean_phone = "".join(filter(str.isdigit, str(phone)))
       if len(clean_phone) < 10:
         clean_phone = "919876543210"
@@ -100,7 +110,7 @@ def fetch_places_new_api(location, category, key):
 
 if st.sidebar.button("🎯 Hunt Clients Now"):
   with st.spinner(
-      "🔍 Fetching real-time businesses via Google Places API (New)..."
+      "🔍 Fetching all real-time businesses via Google Places API..."
   ):
     df = fetch_places_new_api(location_input, category_input, api_key)
     st.session_state["leads_data"] = df
@@ -112,8 +122,20 @@ if "leads_data" in st.session_state and not st.session_state[
 
   col1, col2, col3 = st.columns(3)
   col1.metric("Total Businesses Found", len(df))
-  col2.metric("🔥 HOT Clients", len(df[df["Status"] == "HOT"]))
+  hot_count = len(df[df["Status"] == "HOT"])
+  col2.metric("🔥 HOT Clients", hot_count)
   col3.metric("Target Region", location_input)
+
+  # Excel Export Button restored in Sidebar
+  st.sidebar.markdown("---")
+  st.sidebar.download_button(
+      label="📥 Export Leads to Excel/CSV",
+      data=df.to_csv(index=False),
+      file_name=(
+          f"AK_MEDIA_Leads_{location_input}_{datetime.date.today()}.csv"
+      ),
+      mime="text/csv",
+  )
 
   st.markdown("---")
   st.subheader("📋 Client Lead Board (Real Google Maps Data)")
@@ -147,6 +169,6 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला लोकेशन टाका आणि **'Hunt Clients Now'** बटणावर क्लिक"
+      "👈 डाव्या बाजूला तालुका निवडा आणि **'Hunt Clients Now'** बटणावर क्लिक"
       " करा!"
   )
