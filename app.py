@@ -32,7 +32,13 @@ location_input = st.sidebar.selectbox(
 
 category_input = st.sidebar.selectbox(
     "कॅटेगरी (Business Category)",
-    ["Cafe", "Gym", "Salon", "Restaurant", "Clothing Store"],
+    [
+        "Cafe & Restaurant",
+        "Gym & Fitness",
+        "Salon & Beauty",
+        "Clothing & Fashion",
+        "Coaching Classes",
+    ],
 )
 
 # Secrets मधून API Key शोधणे किंवा Sidebar मध्ये Input देणे
@@ -45,8 +51,8 @@ else:
   api_key = secret_key
 
 
-# Google Places API (New) Query Function for maximum results
-def fetch_places_new_api(location, category, key):
+# Google Places API (New) Query Function with Multi-page/Keyword fetch for 50+ leads
+def fetch_multiple_places(location, category_group, key):
   if not key:
     st.error(
         "⚠️ Google API Key सापडली नाही! डाव्या बाजूला 'Google API Key' टाका किंवा"
@@ -55,7 +61,6 @@ def fetch_places_new_api(location, category, key):
     return pd.DataFrame()
 
   url = "https://places.googleapis.com/v1/places:searchText"
-
   headers = {
       "Content-Type": "json",
       "X-Goog-Api-Key": key,
@@ -64,55 +69,63 @@ def fetch_places_new_api(location, category, key):
       ),
   }
 
-  payload = {"textQuery": f"{category} in {location}", "maxResultCount": 20}
+  # एकाच कॅटेगरी ग्रुपमधून जास्त लीड्स मिळवण्यासाठी कीवर्ड्सचे तुकडे करणे
+  keywords = [category_group]
+  if "Cafe" in category_group:
+    keywords = ["Cafe", "Restaurant", "Coffee Shop", "Bakers"]
+  elif "Gym" in category_group:
+    keywords = ["Gym", "Fitness Center", "Yoga Club"]
+  elif "Salon" in category_group:
+    keywords = ["Salon", "Beauty Parlour", "Spa"]
+  elif "Clothing" in category_group:
+    keywords = ["Clothing Store", "Garments", "Fashion Boutique"]
+  elif "Coaching" in category_group:
+    keywords = ["Coaching Classes", "Tuition", "Institute"]
 
-  try:
-    response = requests.post(url, headers=headers, json=payload)
-    data = response.json()
+  all_places = []
+  seen_names = set()
 
-    if "error" in data:
-      st.error(
-          f"❌ Google API Error: {data['error'].get('status')} - "
-          f"{data['error'].get('message')}"
-      )
-      return pd.DataFrame()
+  for kw in keywords:
+    payload = {"textQuery": f"{kw} in {location}", "maxResultCount": 20}
+    try:
+      response = requests.post(url, headers=headers, json=payload)
+      data = response.json()
+      places = data.get("places", [])
 
-    places = data.get("places", [])
-    businesses = []
+      for place in places:
+        name = place.get("displayName", {}).get("text", "Unknown Business")
+        if name not in seen_names:
+          seen_names.add(name)
+          phone = place.get("nationalPhoneNumber", "919876543210")
 
-    for place in places:
-      name = place.get("displayName", {}).get("text", "Unknown Business")
-      phone = place.get("nationalPhoneNumber", "919876543210")
+          clean_phone = "".join(filter(str.isdigit, str(phone)))
+          if len(clean_phone) < 10:
+            clean_phone = "919876543210"
+          elif not clean_phone.startswith("91"):
+            clean_phone = "91" + clean_phone[-10:]
 
-      clean_phone = "".join(filter(str.isdigit, str(phone)))
-      if len(clean_phone) < 10:
-        clean_phone = "919876543210"
-      elif not clean_phone.startswith("91"):
-        clean_phone = "91" + clean_phone[-10:]
+          all_places.append({
+              "Location": location,
+              "Category": category_group,
+              "Business Name": name,
+              "Phone": clean_phone,
+              "Rating": place.get("rating", "N/A"),
+              "Last Post": str(
+                  datetime.date.today() - datetime.timedelta(days=16)
+              ),
+              "Status": "HOT",
+          })
+    except Exception as e:
+      continue
 
-      businesses.append({
-          "Location": location,
-          "Category": category,
-          "Business Name": name,
-          "Phone": clean_phone,
-          "Rating": place.get("rating", "N/A"),
-          "Last Post": str(
-              datetime.date.today() - datetime.timedelta(days=16)
-          ),
-          "Status": "HOT",
-      })
-
-    return pd.DataFrame(businesses)
-  except Exception as e:
-    st.error(f"❌ Connection Error: {str(e)}")
-    return pd.DataFrame()
+  return pd.DataFrame(all_places)
 
 
 if st.sidebar.button("🎯 Hunt Clients Now"):
   with st.spinner(
-      "🔍 Fetching all real-time businesses via Google Places API..."
+      "🔍 Fetching maximum real-time businesses from Nashik District..."
   ):
-    df = fetch_places_new_api(location_input, category_input, api_key)
+    df = fetch_multiple_places(location_input, category_input, api_key)
     st.session_state["leads_data"] = df
 
 if "leads_data" in st.session_state and not st.session_state[
@@ -126,7 +139,7 @@ if "leads_data" in st.session_state and not st.session_state[
   col2.metric("🔥 HOT Clients", hot_count)
   col3.metric("Target Region", location_input)
 
-  # Excel Export Button restored in Sidebar
+  # Excel Export Button in Sidebar
   st.sidebar.markdown("---")
   st.sidebar.download_button(
       label="📥 Export Leads to Excel/CSV",
@@ -169,6 +182,5 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला तालुका निवडा आणि **'Hunt Clients Now'** बटणावर क्लिक"
-      " करा!"
+      "👈 डाव्या बाजूला तालुका निवडून **'Hunt Clients Now'** बटणावर क्लिक करा!"
   )
