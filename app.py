@@ -38,7 +38,17 @@ with col2:
     st.image("logo.png", width=140)
   except:
     pass
-      
+      # ==================== FORMAL HEADER WITH LOGO ====================
+st.markdown(
+    """
+    <div style="background-color: #0b0b0b; padding: 20px; border-bottom: 3px solid #D4AF37; border-radius: 10px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        <img src="logo.png" style="width: 90px; height: auto; border-radius: 8px; margin-bottom: 10px; border: 1px solid #D4AF37;">
+        <h1 style="color: #D4AF37; margin: 0; font-family: 'Georgia', serif; font-size: 30px; letter-spacing: 2px;">AK MEDIA</h1>
+        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 13px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 # ==================== SIDEBAR FILTERS ====================
 st.sidebar.header("🔍 Search Filters")
 
