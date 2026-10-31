@@ -15,27 +15,32 @@ st.markdown(
     .main { background-color: #0e1117; }
     h1 { color: #D4AF37; text-align: center; font-family: 'sans-serif'; }
     .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
-    
-    /* Footer Fix for Scroll Area */
-    .content-area {
-        margin-bottom: 150px;
-    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# ==================== FORMAL HEADER ====================
-st.markdown(
-    """
-    <div style="background-color: #0b0b0b; padding: 18px; border-bottom: 2px solid #D4AF37; text-align: center; border-radius: 8px; margin-bottom: 25px;">
-        <h1 style="color: #D4AF37; margin:0; font-family: 'Georgia', serif; letter-spacing: 2px; font-size: 32px;">👑 AK MEDIA</h1>
-        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1px;">Building Businesses | Building Brands</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+# ==================== FORMAL HEADER WITH LOGO ====================
+col_logo, col_title = st.columns([1, 4])
+with col_logo:
+  try:
+    # GitHub वर अपलोड केलेल्या लोगो फाईलचे नाव इथे 'logo.png' असावे
+    st.image("logo.png", width=120)
+  except:
+    st.write("👑 **AK MEDIA**")
 
+with col_title:
+  st.markdown(
+      """
+        <div style="background-color: #0b0b0b; padding: 15px; border-bottom: 2px solid #D4AF37; border-radius: 8px; text-align: left;">
+            <h1 style="color: #D4AF37; margin:0; font-family: 'Georgia', serif; font-size: 28px; text-align: left;">👑 AK MEDIA</h1>
+            <p style="color: #e0e0e0; margin: 3px 0 0 0; font-size: 13px; font-weight: 500; letter-spacing: 1px;">Building Businesses | Building Brands</p>
+        </div>
+        """,
+      unsafe_allow_html=True,
+  )
+
+st.markdown("<br>", unsafe_allow_html=True)
 st.title("🎯 Hot Client Hunter (Nashik District)")
 st.write(
     "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा आणि एका क्लिकवर व्हॉट्सॲप"
@@ -45,7 +50,6 @@ st.write(
 # ==================== SIDEBAR FILTERS ====================
 st.sidebar.header("🔍 Search Filters")
 
-# नाशिक जिल्ह्याचे सर्व तालुके आणि त्यांचे सर्व प्रमुख एरिया
 nashik_district_data = {
     "Chandwad": [
         "Bus Stand Area, Chandwad",
@@ -120,16 +124,13 @@ nashik_district_data = {
 district_input = st.sidebar.selectbox(
     "१. जिल्हा निवडा (District)", ["Nashik District"]
 )
-
 selected_taluka = st.sidebar.selectbox(
     "२. तालुका निवडा (Taluka)", list(nashik_district_data.keys())
 )
-
 selected_area = st.sidebar.selectbox(
     "३. विशिष्ट एरिया निवडा (Area/Locality)",
     nashik_district_data[selected_taluka],
 )
-
 category_input = st.sidebar.selectbox(
     "४. कॅटेगरी निवडा (Category)",
     [
@@ -146,13 +147,11 @@ category_input = st.sidebar.selectbox(
         "Mobile Shop",
     ],
 )
-
 pitch_language = st.sidebar.selectbox(
     "🌐 पिचची भाषा निवडा (Pitch Language)",
     ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
 )
 
-# Secrets मधून API Key शोधणे किंवा Sidebar मध्ये Input देणे
 secret_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not secret_key:
   api_key = st.sidebar.text_input(
@@ -162,13 +161,9 @@ else:
   api_key = secret_key
 
 
-# Google Places API (New) Query Function
 def fetch_strict_area_places(taluka, area, category, key):
   if not key:
-    st.error(
-        "⚠️ Google API Key सापडली नाही! डाव्या बाजूला 'Google API Key' टाका किंवा"
-        " Streamlit Secrets मध्ये सेट करा."
-    )
+    st.error("⚠️ Google API Key सापडली नाही!")
     return pd.DataFrame()
 
   url = "https://places.googleapis.com/v1/places:searchText"
@@ -179,7 +174,6 @@ def fetch_strict_area_places(taluka, area, category, key):
           "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating"
       ),
   }
-
   search_query = f"{category} in {area}, {taluka}, Nashik, Maharashtra"
   payload = {"textQuery": search_query, "maxResultCount": 20}
 
@@ -188,10 +182,7 @@ def fetch_strict_area_places(taluka, area, category, key):
     data = response.json()
 
     if "error" in data:
-      st.error(
-          f"❌ Google API Error: {data['error'].get('status')} - "
-          f"{data['error'].get('message')}"
-      )
+      st.error(f"❌ Google API Error: {data['error'].get('message')}")
       return pd.DataFrame()
 
     places = data.get("places", [])
@@ -200,7 +191,6 @@ def fetch_strict_area_places(taluka, area, category, key):
     for place in places:
       name = place.get("displayName", {}).get("text", "Unknown Business")
       address = place.get("formattedAddress", "")
-
       phone = place.get("nationalPhoneNumber", "919876543210")
       clean_phone = "".join(filter(str.isdigit, str(phone)))
       if len(clean_phone) < 10:
@@ -229,11 +219,8 @@ def fetch_strict_area_places(taluka, area, category, key):
     return pd.DataFrame()
 
 
-# ==================== MAIN CONTENT ====================
 if st.sidebar.button("🎯 Hunt District Leads Now"):
-  with st.spinner(
-      f"🔍 Fetching real-time leads specifically for {selected_area} ({selected_taluka})..."
-  ):
+  with st.spinner(f"🔍 Fetching real-time leads for {selected_area}..."):
     df = fetch_strict_area_places(
         selected_taluka, selected_area, category_input, api_key
     )
@@ -246,11 +233,9 @@ if "leads_data" in st.session_state and not st.session_state[
 
   col1, col2, col3 = st.columns(3)
   col1.metric("Total Businesses Found", len(df))
-  hot_count = len(df[df["Status"] == "HOT"])
-  col2.metric("🔥 HOT Clients", hot_count)
+  col2.metric("🔥 HOT Clients", len(df[df["Status"] == "HOT"]))
   col3.metric("Target Area", selected_area)
 
-  # Excel Export Button
   st.sidebar.markdown("---")
   st.sidebar.download_button(
       label="📥 Export Leads to Excel/CSV",
@@ -275,7 +260,6 @@ if "leads_data" in st.session_state and not st.session_state[
       c3.write(f"📅 Last Post: {row['Last Post']}")
       c4.error(f"🔥 {row['Status']}")
 
-      # Dynamic Multi-language Pitch logic
       if "Marathi" in pitch_language:
         pitch_msg = (
             f"नमस्कार {row['Business Name']},\n\nमी AK MEDIA (नाशिक) वरून"
@@ -327,10 +311,6 @@ else:
       "👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District"
       " Leads Now'** बटणावर क्लिक करा!"
   )
-
-st.markdown(
-    "<br><br><br><br>", unsafe_allow_html=True
-)  # Extra spacing for footer
 
 # ==================== FORMAL FOOTER ====================
 st.markdown(
