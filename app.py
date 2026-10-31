@@ -254,9 +254,9 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.xlsx"
+          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
       ),
-      mime="text/xlsx",
+      mime="text/csv",
   )
 
   st.markdown("---")
@@ -321,43 +321,49 @@ if "leads_data" in st.session_state and not st.session_state[
             """
       c5.markdown(action_html, unsafe_allow_html=True)
 
-      # Safe filename generation for Audit Report to prevent KeyError
+      # Safe filename generation for Audit Report (.txt format)
       safe_business_name = str(row["Business Name"]).replace(" ", "_")
       audit_report_text = f"""
-# THE AK MEDIA - Social Media & Digital Audit Report
-**Prepared For:** {row['Business Name']}
-**Location:** {row['Area']}, {row['Taluka']}, Nashik
-**Category:** {row['Category']}
-**Date:** {datetime.date.today()}
+THE AK MEDIA - Social Media & Digital Audit Report
+--------------------------------------------------
+Prepared For: {row['Business Name']}
+Location: {row['Area']}, {row['Taluka']}, Nashik
+Category: {row['Category']}
+Date: {datetime.date.today()}
 
----
-### 🔍 Executive Summary:
-- **Online Visibility:** Moderate
-- **Social Media Activity:** Inactive (>15 days without recent posts)
-- **Customer Rating:** {row['Rating']} / 5.0
-- **AI Priority Score:** {row['AI Score']}
+1. EXECUTIVE SUMMARY:
+- Online Visibility: Moderate
+- Social Media Activity: Inactive (>15 days without recent posts)
+- Customer Rating: {row['Rating']} / 5.0
+- AI Priority Score: {row['AI Score']}
 
-### ⚠️ Identified Gaps:
-1. Lack of consistent weekly posting leads to lower organic discovery.
-2. Competitors in {row['Taluka']} are capturing high-intent local search traffic.
+2. IDENTIFIED GAPS:
+- Lack of consistent weekly posting leads to lower organic discovery.
+- Competitors in {row['Taluka']} are capturing high-intent local search traffic.
 
-### 💡 Recommended Solutions by THE AK MEDIA:
+3. RECOMMENDED SOLUTIONS BY THE AK MEDIA:
 - End-to-End Social Media Management & Branding.
 - High-converting Reels & Local Targeted Campaigns.
 - Professional Reputation Management.
 
-*Generated automatically via THE AK MEDIA - Hot Client Hunter System.*
+--------------------------------------------------
+Generated automatically via THE AK MEDIA - Hot Client Hunter System.
             """
 
       with st.expander(
           f"📑 View One-Click Audit Report for {row['Business Name']}"
       ):
-        st.markdown(audit_report_pdf)
+        st.text_area(
+            "Audit Report Preview",
+            audit_report_text,
+            height=200,
+            key=f"text_area_{idx}",
+        )
         st.download_button(
-            label=f"📥 Download Audit Report ({row['Business Name']})",
-            data=audit_report_pdf,
-            file_name=f"Audit_Report_{safe_business_name}.pdf",
-            mime="pdf",
+            label=f"📥 Download Audit Report (.txt) ({row['Business Name']})",
+            data=audit_report_text,
+            file_name=f"Audit_Report_{safe_business_name}.txt",
+            mime="text/plain",
             key=f"audit_{idx}",
         )
 
