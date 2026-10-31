@@ -1,5 +1,6 @@
 import datetime
 import urllib.parse
+from PIL import Image  # 👈 नवीन इम्पोर्ट
 import pandas as pd
 import requests
 import streamlit as st
@@ -19,17 +20,43 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-# ==================== FORMAL HEADER WITH LOGO ====================
+
+# ==================== FORMAL HEADER WITH PERFECT LOGO ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 20px; border-bottom: 3px solid #D4AF37; border-radius: 10px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-        <img src="logo.png" style="width: 90px; height: auto; border-radius: 8px; margin-bottom: 10px; border: 1px solid #D4AF37;">
-        <h1 style="color: #D4AF37; margin: 0; font-family: 'Georgia', serif; font-size: 30px; letter-spacing: 2px;">AK MEDIA</h1>
-        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 13px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
+    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+    """,
+    unsafe_allow_html=True,
+)
+
+# PIL वापरून लोगो अगदी अचूक सेंटरला आणि व्यवस्थित लोड करणे
+col1, col2, col3 = st.columns([2, 1.5, 2])
+with col2:
+  try:
+    img = Image.open("logo.png")
+    st.image(img, width=160)
+  except Exception as e:
+    st.markdown(
+        "<h2 style='color: #D4AF37; text-align: center;'>👑 AK MEDIA</h2>",
+        unsafe_allow_html=True,
+    )
+
+st.markdown(
+    """
+        <h1 style="color: #D4AF37; margin: 10px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">AK MEDIA</h1>
+        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+st.markdown("<br>", unsafe_allow_html=True)
+st.title("🎯 Hot Client Hunter (Nashik District)")
+st.write(
+    "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा आणि एका क्लिकवर व्हॉट्सॲप"
+    " pitch पाठवा!"
+)
+
 # ==================== SIDEBAR FILTERS ====================
 st.sidebar.header("🔍 Search Filters")
 
