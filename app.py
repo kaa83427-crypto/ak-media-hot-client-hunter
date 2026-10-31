@@ -352,12 +352,12 @@ if "leads_data" in st.session_state and not st.session_state[
       with st.expander(
           f"📑 View One-Click Audit Report for {row['Business Name']}"
       ):
-        st.markdown(audit_report_text)
+        st.markdown(audit_report_pdf)
         st.download_button(
             label=f"📥 Download Audit Report ({row['Business Name']})",
-            data=audit_report_text,
+            data=audit_report_pdf,
             file_name=f"Audit_Report_{safe_business_name}.pdf",
-            mime="txet/pdf",
+            mime="pdf",
             key=f"audit_{idx}",
         )
 
