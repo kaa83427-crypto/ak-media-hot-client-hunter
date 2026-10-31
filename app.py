@@ -43,7 +43,7 @@ with col2:
 
 st.markdown(
     """
-        <h1 style="color: #D4AF37; margin: 10px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">AK MEDIA</h1>
+        <h1 style="color: #D4AF37; margin: 10px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
         <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
@@ -251,9 +251,9 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
+          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.xlsx"
       ),
-      mime="text/csv",
+      mime="text/xlsx",
   )
 
   st.markdown("---")
