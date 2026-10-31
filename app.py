@@ -6,7 +6,7 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
+    page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
 # Custom CSS for Dark Mode & Styling
@@ -37,7 +37,7 @@ with col2:
     st.image(img, width=160)
   except Exception as e:
     st.markdown(
-        "<h2 style='color: #D4AF37; text-align: center;'>👑 AK MEDIA</h2>",
+        "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
         unsafe_allow_html=True,
     )
 
@@ -328,7 +328,7 @@ st.markdown(
     <div style="background-color: #0b0b0b; padding: 25px; border-top: 2px solid #D4AF37; margin-top: 50px; border-radius: 8px; font-family: sans-serif; color: #b0b0b0;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
             <div style="flex: 1; min-width: 250px;">
-                <h3 style="color: #D4AF37; margin-top: 0;">👑 AK MEDIA</h3>
+                <h3 style="color: #D4AF37; margin-top: 0;">THE AK MEDIA</h3>
                 <p style="font-size: 13px; line-height: 1.6;">
                     Building Businesses | Building Brands<br>
                     नाशिक जिल्ह्यातील ऑटोमेटेड क्लायंट ॲक्विझिशन आणि डिजिटल ब्रँडिंग सोल्यूशन्स.
@@ -345,11 +345,11 @@ st.markdown(
         </div>
         <hr style="border-color: #333; margin: 15px 0;">
         <div style="font-size: 11px; color: #777777; line-height: 1.5; text-align: justify;">
-            <b>Disclaimer:</b> AK MEDIA - Hot Client Hunter ही सिस्टीम नाशिक जिल्ह्यातील स्थानिक व्यवसायांचा रिअल-टाइम डेटा शोधण्यासाठी सार्वजनिकरित्या उपलब्ध असलेल्या Google Places API चा वापर करते. ही सिस्टीम केवळ अंतर्गत व्यवसाय संपर्क आणि मार्केटिंग ऑडिट उद्देशांसाठी डिझाइन केली आहे.
+            <b>Disclaimer:</b> THE AK MEDIA - Hot Client Hunter ही सिस्टीम नाशिक जिल्ह्यातील स्थानिक व्यवसायांचा रिअल-टाइम डेटा शोधण्यासाठी सार्वजनिकरित्या उपलब्ध असलेल्या Google Places API चा वापर करते. ही सिस्टीम केवळ अंतर्गत व्यवसाय संपर्क आणि मार्केटिंग ऑडिट उद्देशांसाठी डिझाइन केली आहे.
         </div>
         <hr style="border-color: #222; margin: 15px 0 10px 0;">
         <div style="text-align: center; font-size: 12px; color: #D4AF37;">
-            © 2026 <b>AK MEDIA</b>. All Rights Reserved.
+            © 2026 <b>THE AK MEDIA</b>. All Rights Reserved.
         </div>
     </div>
     """,
