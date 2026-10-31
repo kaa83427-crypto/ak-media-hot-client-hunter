@@ -9,32 +9,31 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-# Custom CSS for Dark Mode & Styling
+# Custom CSS for Professional Look
 st.markdown(
     """
     <style>
     .main { background-color: #0e1117; }
-    h1 { color: #D4AF37; text-align: center; font-family: 'sans-serif'; }
     .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# ==================== FORMAL HEADER WITH CENTERED LOGO ====================
+# ==================== FORMAL HEADER (CENTERED LOGO & THEME SAFE) ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
     """,
     unsafe_allow_html=True,
 )
 
-# Streamlit columns वापरून लोगो अचूक सेंटरला सेट करणे
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
+# अचूक सेंटर करण्यासाठी Streamlit Columns वापरले आहेत
+col_l, col_c, col_r = st.columns([2, 1.5, 2])
+with col_c:
   try:
     img = Image.open("logo.png")
-    st.image(img, width=160)
+    st.image(img, width=150)
   except Exception as e:
     st.markdown(
         "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
@@ -44,7 +43,7 @@ with col2:
 st.markdown(
     """
         <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
-        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
+        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -325,18 +324,18 @@ else:
 # ==================== FORMAL FOOTER ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-top: 2px solid #D4AF37; margin-top: 50px; border-radius: 8px; font-family: sans-serif; color: #b0b0b0;">
+    <div style="background-color: #0b0b0b; padding: 25px; border-top: 2px solid #D4AF37; margin-top: 50px; border-radius: 8px; font-family: sans-serif; color: #FFFFFF;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
             <div style="flex: 1; min-width: 250px;">
                 <h3 style="color: #D4AF37; margin-top: 0;">THE AK MEDIA</h3>
-                <p style="font-size: 13px; line-height: 1.6;">
+                <p style="font-size: 13px; line-height: 1.6; color: #E0E0E0;">
                     Building Businesses | Building Brands<br>
                     नाशिक जिल्ह्यातील ऑटोमेटेड क्लायंट ॲक्विझिशन आणि डिजिटल ब्रँडिंग सोल्यूशन्स.
                 </p>
             </div>
             <div style="flex: 1; min-width: 250px;">
                 <h4 style="color: #D4AF37; margin-top: 0;">📞 संपर्क आणि पत्ता</h4>
-                <p style="font-size: 13px; line-height: 1.6;">
+                <p style="font-size: 13px; line-height: 1.6; color: #E0E0E0;">
                     <b>फोन:</b> +91 9172082052<br>
                     <b>ईमेल:</b> the.ak.media56@gmail.com<br>
                     <b>ऑफिस:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad, Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
@@ -344,7 +343,7 @@ st.markdown(
             </div>
         </div>
         <hr style="border-color: #333; margin: 15px 0;">
-        <div style="font-size: 11px; color: #777777; line-height: 1.5; text-align: justify;">
+        <div style="font-size: 11px; color: #AAAAAA; line-height: 1.5; text-align: justify;">
             <b>Disclaimer:</b> THE AK MEDIA - Hot Client Hunter ही सिस्टीम नाशिक जिल्ह्यातील स्थानिक व्यवसायांचा रिअल-टाइम डेटा शोधण्यासाठी सार्वजनिकरित्या उपलब्ध असलेल्या Google Places API चा वापर करते. ही सिस्टीम केवळ अंतर्गत व्यवसाय संपर्क आणि मार्केटिंग ऑडिट उद्देशांसाठी डिझाइन केली आहे.
         </div>
         <hr style="border-color: #222; margin: 15px 0 10px 0;">
