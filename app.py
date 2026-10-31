@@ -14,57 +14,122 @@ st.write(
     " पिच पाठवा!"
 )
 
-# Sidebar Setup with Hierarchical Filters
+# Sidebar Setup with Full Nashik District (Talukas -> Areas -> Categories)
 st.sidebar.header("🔍 Search Filters")
 
-# 1. Taluka Selection
-taluka_options = {
-    "Chandwad": [
-        "Bus Stand Area, Chandwad",
-        "Main Market, Chandwad",
-        "Manmath Nagar, Chandwad",
-        "Deola Road, Chandwad",
-    ],
-    "Nashik City": [
+# नाशिक जिल्ह्याचे सर्व तालुके आणि त्यांचे सर्व प्रमुख एरिया
+nashik_district_data = {
+    "Nashik": [
         "College Road, Nashik",
         "Gangapur Road, Nashik",
         "Cidco, Nashik",
         "Indiranagar, Nashik",
         "Panchavati, Nashik",
         "Satpur, Nashik",
+        "Adgaon, Nashik",
+        "Makhmalabad, Nashik",
+        "Nashik Road",
+        "Pathardi Phata, Nashik",
+        "Dwarka, Nashik",
+        "Ambad, Nashik",
+    ],
+    "Chandwad": [
+        "Bus Stand Area, Chandwad",
+        "Main Market, Chandwad",
+        "Manmath Nagar, Chandwad",
+        "Deola Road, Chandwad",
+        "Rajendra Nagar, Chandwad",
+        "Station Road, Chandwad",
+        "Vinchur Road, Chandwad",
     ],
     "Sinnar": [
         "Pune Road, Sinnar",
         "Main Bazar, Sinnar",
         "MIDC Sinnar",
+        "Deolali Camp Road, Sinnar",
+        "Shirdi Road, Sinnar",
     ],
     "Malegaon": [
         "Camp Road, Malegaon",
         "Kidwai Road, Malegaon",
         "Main Road, Malegaon",
+        "Sangmeshwar, Malegaon",
+        "Soygaon, Malegaon",
+        "Azad Nagar, Malegaon",
     ],
-    "Igatpuri": [
-        "Station Road, Igatpuri",
-        "Mumbai-Nashik Highway, Igatpuri",
+    "Niphad": [
+        "Niphad City",
+        "Pimpalgaon Baswant",
+        "Lasalgaon",
+        "Khedle Khede",
+        "Saykheda",
     ],
     "Yeola": [
         "Vinchur Road, Yeola",
         "Main Bazar, Yeola",
+        "Station Road, Yeola",
+        "Andarsul, Yeola",
+    ],
+    "Dindori": [
+        "Dindori City",
+        "Vani",
+        "Khedgaon",
+        "Peth Road Dindori",
+    ],
+    "Igatpuri": [
+        "Station Road, Igatpuri",
+        "Mumbai-Nashik Highway, Igatpuri",
+        "Ghoti Budruk",
+    ],
+    "Trimbakeshwar": [
+        "Trimbak City",
+        "Shrimantha Baji Rao Road, Trimbakeshwar",
+        "Harshul",
+    ],
+    "Kalwan": [
+        "Kalwan City",
+        "Meshi",
+        "Konal",
+    ],
+    "Deola": [
+        "Deola City",
+        "Wakhari",
+        "Bhadwan",
+    ],
+    "Surgana": [
+        "Surgana City",
+        "Borro",
+    ],
+    "Peth": [
+        "Peth City",
+        "Devali",
+    ],
+    "Baglan (Satana)": [
+        "Satana City",
+        "Taharat",
+        "Arai",
     ],
 }
 
+# 1. जिल्हा (District Fixed to Nashik)
+district_input = st.sidebar.selectbox(
+    "१. जिल्हा निवडा (District)", ["Nashik District"]
+)
+
+# 2. तालुका निवडा (Taluka Dropdown)
 selected_taluka = st.sidebar.selectbox(
-    "१. तालुका निवडा (Taluka)", list(taluka_options.keys())
+    "२. तालुका निवडा (Taluka)", list(nashik_district_data.keys())
 )
 
-# 2. Area Selection
+# 3. एरिया निवडा (Area Dropdown based on selected Taluka)
 selected_area = st.sidebar.selectbox(
-    "२. विशिष्ट एरिया निवडा (Area)", taluka_options[selected_taluka]
+    "३. विशिष्ट एरिया निवडा (Area/Locality)",
+    nashik_district_data[selected_taluka],
 )
 
-# 3. Category Selection
+# 4. कॅटेगरी निवडा (Category Dropdown)
 category_input = st.sidebar.selectbox(
-    "३. कॅटेगरी निवडा (Category)",
+    "४. कॅटेगरी निवडा (Category)",
     [
         "Cafe",
         "Restaurant",
@@ -74,10 +139,13 @@ category_input = st.sidebar.selectbox(
         "Clothing Store",
         "Coaching Classes",
         "Bakery",
+        "Hardware Store",
+        "Medical Store",
+        "Mobile Shop",
     ],
 )
 
-# 4. Multi-Language Pitch Selection (नवी सोय)
+# 5. भाषा निवडा (Multi-Language Pitch)
 pitch_language = st.sidebar.selectbox(
     "🌐 पिचची भाषा निवडा (Pitch Language)",
     ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
@@ -140,6 +208,7 @@ def fetch_strict_area_places(taluka, area, category, key):
         clean_phone = "91" + clean_phone[-10:]
 
       businesses.append({
+          "District": "Nashik",
           "Taluka": taluka,
           "Area": area,
           "Category": category,
@@ -159,9 +228,9 @@ def fetch_strict_area_places(taluka, area, category, key):
     return pd.DataFrame()
 
 
-if st.sidebar.button("🎯 Hunt Area Leads Now"):
+if st.sidebar.button("🎯 Hunt District Leads Now"):
   with st.spinner(
-      f"🔍 Fetching real-time leads specifically for {selected_area}..."
+      f"🔍 Fetching real-time leads specifically for {selected_area} ({selected_taluka})..."
   ):
     df = fetch_strict_area_places(
         selected_taluka, selected_area, category_input, api_key
@@ -185,18 +254,21 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"AK_MEDIA_Leads_{selected_area}_{datetime.date.today()}.csv"
+          f"AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
       ),
       mime="text/csv",
   )
 
   st.markdown("---")
-  st.subheader(f"📋 Client Lead Board — {selected_area} ({category_input})")
+  st.subheader(
+      f"📋 Client Lead Board — {selected_area}, {selected_taluka}"
+      f" ({category_input})"
+  )
 
   for idx, row in df.iterrows():
     with st.container():
       c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
-      c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}")
+      c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
       c2.write(f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}")
       c3.write(f"📅 Last Post: {row['Last Post']}")
       c4.error(f"🔥 {row['Status']}")
@@ -250,6 +322,6 @@ if "leads_data" in st.session_state and not st.session_state[
       )
 else:
   st.info(
-      "👈 डाव्या बाजूला तालुका, एरिया, कॅटेगरी आणि **भाषा** निवडून **'Hunt Area"
+      "👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District"
       " Leads Now'** बटणावर क्लिक करा!"
   )
