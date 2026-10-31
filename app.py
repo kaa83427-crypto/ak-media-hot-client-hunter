@@ -20,31 +20,30 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ==================== FORMAL HEADER (100% CENTERED LOGO & THEME SAFE) ====================
+# ==================== FORMAL HEADER WITH PERFECT CENTERED LOGO ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center;">
-""",
+    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+    """,
     unsafe_allow_html=True,
 )
 
-# PIL वापरून लोगो थेट HTML द्वारे सेंटरला सेट करणे
-try:
-  st.markdown(
-      """
-        <div style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 10px;">
-            <img src="logo.png" style="width: 150px; height: auto; border-radius: 8px;">
-        </div>
-        """,
-      unsafe_allow_html=True,
-  )
-except:
-  pass
+# 100% अचूक सेंटर करण्यासाठी Streamlit Columns वापरले आहेत
+col1, col2, col3 = st.columns([1, 1, 1])
+with col2:
+  try:
+    img = Image.open("logo.png")
+    st.image(img, width=150)
+  except Exception as e:
+    st.markdown(
+        "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
+        unsafe_allow_html=True,
+    )
 
 st.markdown(
     """
-        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px;">THE AK MEDIA</h1>
-        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
+        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
+        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
     unsafe_allow_html=True,
