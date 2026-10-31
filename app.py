@@ -312,7 +312,7 @@ if "leads_data" in st.session_state and not st.session_state[
       wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
       call_url = f'tel:{row["Phone"]}'
 
-      # Call Now + WhatsApp + Audit Report buttons in column c5
+      # Call Now + WhatsApp buttons
       action_html = f"""
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                 <a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
@@ -321,7 +321,8 @@ if "leads_data" in st.session_state and not st.session_state[
             """
       c5.markdown(action_html, unsafe_allow_html=True)
 
-      # One-Click Audit Report Generator Expander
+      # Safe filename generation for Audit Report to prevent KeyError
+      safe_business_name = str(row["Business Name"]).replace(" ", "_")
       audit_report_text = f"""
 # THE AK MEDIA - Social Media & Digital Audit Report
 **Prepared For:** {row['Business Name']}
@@ -355,7 +356,7 @@ if "leads_data" in st.session_state and not st.session_state[
         st.download_button(
             label=f"📥 Download Audit Report ({row['Business Name']})",
             data=audit_report_text,
-            file_name=f"Audit_Report_{row['BusinessName'].replace(' ', '_')}.txt",
+            file_name=f"Audit_Report_{safe_business_name}.txt",
             mime="text/plain",
             key=f"audit_{idx}",
         )
