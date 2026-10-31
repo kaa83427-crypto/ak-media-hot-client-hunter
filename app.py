@@ -1,6 +1,5 @@
 import datetime
 import urllib.parse
-from PIL import Image
 import pandas as pd
 import requests
 import streamlit as st
@@ -20,43 +19,30 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ==================== FORMAL HEADER WITH 100% CENTERED LOGO ====================
+# Initialize Session State for Team Activity Tracker
+if "leads_hunted_count" not in st.session_state:
+  st.session_state["leads_hunted_count"] = 0
+if "pitches_sent_count" not in st.session_state:
+  st.session_state["pitches_sent_count"] = 0
+
+# ==================== FORMAL HEADER ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-    """,
-    unsafe_allow_html=True,
-)
-
-# Streamlit columns वापरून लोगो अचूक मध्यभागी सेट करणे
-col1, col2, col3 = st.columns([1, 1.2, 1])
-with col2:
-  try:
-    img = Image.open("logo.png")
-    st.image(img, width=160)
-  except Exception as e:
-    st.markdown(
-        "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
-        unsafe_allow_html=True,
-    )
-
-st.markdown(
-    """
-        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
-        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
+    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center;">
+        <h1 style="color: #D4AF37; margin: 5px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px;">THE AK MEDIA</h1>
+        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown("<br>", unsafe_allow_html=True)
-st.title("🎯 Hot Client Hunter (Nashik District)")
+st.title("🎯 Hot Client Hunter & AI Lead System (Nashik District)")
 st.write(
-    "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा आणि एका क्लिकवर व्हॉट्सॲप"
-    " pitch पाठवा!"
+    "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा, AI स्कोर तपासा आणि"
+    " एका क्लिकवर कॉल/पच पाठवा!"
 )
 
-# ==================== SIDEBAR FILTERS ====================
+# ==================== SIDEBAR FILTERS & TEAM TRACKER ====================
 st.sidebar.header("🔍 Search Filters")
 
 nashik_district_data = {
@@ -161,6 +147,12 @@ pitch_language = st.sidebar.selectbox(
     ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
 )
 
+# Team Performance Tracker in Sidebar
+st.sidebar.markdown("---")
+st.sidebar.subheader("📊 Team Activity Tracker")
+st.sidebar.metric("Total Leads Hunted", st.session_state["leads_hunted_count"])
+st.sidebar.metric("Pitches / Actions", st.session_state["pitches_sent_count"])
+
 secret_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not secret_key:
   api_key = st.sidebar.text_input(
@@ -207,6 +199,15 @@ def fetch_strict_area_places(taluka, area, category, key):
       elif not clean_phone.startswith("91"):
         clean_phone = "91" + clean_phone[-10:]
 
+      rating = place.get("rating", 4.0)
+      if rating == "N/A":
+        rating = 4.0
+
+      # AI Lead Scoring Logic
+      ai_score = (
+          "🔥 High Priority (Hot)" if float(rating) >= 4.0 else "⚡ Standard"
+      )
+
       businesses.append({
           "District": "Nashik",
           "Taluka": taluka,
@@ -215,7 +216,8 @@ def fetch_strict_area_places(taluka, area, category, key):
           "Business Name": name,
           "Address": address,
           "Phone": clean_phone,
-          "Rating": place.get("rating", "N/A"),
+          "Rating": rating,
+          "AI Score": ai_score,
           "Last Post": str(
               datetime.date.today() - datetime.timedelta(days=16)
           ),
@@ -229,11 +231,12 @@ def fetch_strict_area_places(taluka, area, category, key):
 
 
 if st.sidebar.button("🎯 Hunt District Leads Now"):
-  with st.spinner(f"🔍 Fetching real-time leads for {selected_area}..."):
+  with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
     df = fetch_strict_area_places(
         selected_taluka, selected_area, category_input, api_key
     )
     st.session_state["leads_data"] = df
+    st.session_state["leads_hunted_count"] += len(df)
 
 if "leads_data" in st.session_state and not st.session_state[
     "leads_data"
@@ -242,7 +245,8 @@ if "leads_data" in st.session_state and not st.session_state[
 
   col1, col2, col3 = st.columns(3)
   col1.metric("Total Businesses Found", len(df))
-  col2.metric("🔥 HOT Clients", len(df[df["Status"] == "HOT"]))
+  hot_count = len(df[df["AI Score"].str.contains("High Priority")])
+  col2.metric("🔥 AI High Priority Clients", hot_count)
   col3.metric("Target Area", selected_area)
 
   st.sidebar.markdown("---")
@@ -257,7 +261,7 @@ if "leads_data" in st.session_state and not st.session_state[
 
   st.markdown("---")
   st.subheader(
-      f"📋 Client Lead Board — {selected_area}, {selected_taluka}"
+      f"📋 Client Lead Board & AI Scoring — {selected_area}, {selected_taluka}"
       f" ({category_input})"
   )
 
@@ -265,10 +269,13 @@ if "leads_data" in st.session_state and not st.session_state[
     with st.container():
       c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
       c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
-      c2.write(f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}")
+      c2.write(
+          f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}\n🤖 {row['AI Score']}"
+      )
       c3.write(f"📅 Last Post: {row['Last Post']}")
       c4.error(f"🔥 {row['Status']}")
 
+      # Multi-language Pitch logic
       if "Marathi" in pitch_language:
         pitch_msg = (
             f"नमस्कार {row['Business Name']},\n\nमी THE AK MEDIA (नाशिक) वरून"
@@ -303,14 +310,56 @@ if "leads_data" in st.session_state and not st.session_state[
 
       encoded_msg = urllib.parse.quote(pitch_msg)
       wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
+      call_url = f'tel:{row["Phone"]}'
 
-      c5.markdown(
-          f'<a href="{wa_url}" target="_blank"><button'
-          ' style="background-color:#25D366; color:white; border:none;'
-          ' padding:8px 12px; border-radius:5px; cursor:pointer;'
-          ' font-weight:bold;">📲 Send WhatsApp Pitch</button></a>',
-          unsafe_allow_html=True,
-      )
+      # Call Now + WhatsApp + Audit Report buttons in column c5
+      action_html = f"""
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
+                <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
+            </div>
+            """
+      c5.markdown(action_html, unsafe_allow_html=True)
+
+      # One-Click Audit Report Generator Expander
+      audit_report_text = f"""
+# THE AK MEDIA - Social Media & Digital Audit Report
+**Prepared For:** {row['Business Name']}
+**Location:** {row['Area']}, {row['Taluka']}, Nashik
+**Category:** {row['Category']}
+**Date:** {datetime.date.today()}
+
+---
+### 🔍 Executive Summary:
+- **Online Visibility:** Moderate
+- **Social Media Activity:** Inactive (>15 days without recent posts)
+- **Customer Rating:** {row['Rating']} / 5.0
+- **AI Priority Score:** {row['AI Score']}
+
+### ⚠️ Identified Gaps:
+1. Lack of consistent weekly posting leads to lower organic discovery.
+2. Competitors in {row['Taluka']} are capturing high-intent local search traffic.
+
+### 💡 Recommended Solutions by THE AK MEDIA:
+- End-to-End Social Media Management & Branding.
+- High-converting Reels & Local Targeted Campaigns.
+- Professional Reputation Management.
+
+*Generated automatically via THE AK MEDIA - Hot Client Hunter System.*
+            """
+
+      with st.expander(
+          f"📑 View One-Click Audit Report for {row['Business Name']}"
+      ):
+        st.markdown(audit_report_text)
+        st.download_button(
+            label=f"📥 Download Audit Report ({row['Business Name']})",
+            data=audit_report_text,
+            file_name=f"Audit_Report_{row['BusinessName'].replace(' ', '_')}.txt",
+            mime="text/plain",
+            key=f"audit_{idx}",
+        )
+
       st.markdown(
           "<hr style='margin:8px 0; border-color:#333;'/>",
           unsafe_allow_html=True,
