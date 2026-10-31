@@ -8,17 +8,55 @@ st.set_page_config(
     page_title="AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-st.title("🎯 AK MEDIA - Hot Client Hunter (Nashik District)")
-st.write(
-    "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा आणि एका क्लिकवर व्हॉट्सॲप"
-    " पिच पाठवा!"
+# Custom CSS for Dark Mode & Styling
+st.markdown(
+    """
+    <style>
+    .main { background-color: #0e1117; }
+    h1 { color: #D4AF37; text-align: center; font-family: 'sans-serif'; }
+    .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
+    
+    /* Footer Fix for Scroll Area */
+    .content-area {
+        margin-bottom: 150px;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
 )
 
-# Sidebar Setup with Full Nashik District (Talukas -> Areas -> Categories)
+# ==================== FORMAL HEADER ====================
+st.markdown(
+    """
+    <div style="background-color: #0b0b0b; padding: 18px; border-bottom: 2px solid #D4AF37; text-align: center; border-radius: 8px; margin-bottom: 25px;">
+        <h1 style="color: #D4AF37; margin:0; font-family: 'Georgia', serif; letter-spacing: 2px; font-size: 32px;">👑 AK MEDIA</h1>
+        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1px;">Building Businesses | Building Brands</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.title("🎯 Hot Client Hunter (Nashik District)")
+st.write(
+    "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा आणि एका क्लिकवर व्हॉट्सॲप"
+    " pitch पाठवा!"
+)
+
+# ==================== SIDEBAR FILTERS ====================
 st.sidebar.header("🔍 Search Filters")
 
 # नाशिक जिल्ह्याचे सर्व तालुके आणि त्यांचे सर्व प्रमुख एरिया
 nashik_district_data = {
+    "Chandwad": [
+        "Bus Stand Area, Chandwad",
+        "Main Market, Chandwad",
+        "Manmath Nagar, Chandwad",
+        "Dhawkhar Nagar, Chandwad",
+        "Deola Road, Chandwad",
+        "Rajendra Nagar, Chandwad",
+        "Station Road, Chandwad",
+        "Vinchur Road, Chandwad",
+    ],
     "Nashik": [
         "College Road, Nashik",
         "Gangapur Road, Nashik",
@@ -32,15 +70,6 @@ nashik_district_data = {
         "Pathardi Phata, Nashik",
         "Dwarka, Nashik",
         "Ambad, Nashik",
-    ],
-    "Chandwad": [
-        "Bus Stand Area, Chandwad",
-        "Main Market, Chandwad",
-        "Manmath Nagar, Chandwad",
-        "Deola Road, Chandwad",
-        "Rajendra Nagar, Chandwad",
-        "Station Road, Chandwad",
-        "Vinchur Road, Chandwad",
     ],
     "Sinnar": [
         "Pune Road, Sinnar",
@@ -70,12 +99,7 @@ nashik_district_data = {
         "Station Road, Yeola",
         "Andarsul, Yeola",
     ],
-    "Dindori": [
-        "Dindori City",
-        "Vani",
-        "Khedgaon",
-        "Peth Road Dindori",
-    ],
+    "Dindori": ["Dindori City", "Vani", "Khedgaon", "Peth Road Dindori"],
     "Igatpuri": [
         "Station Road, Igatpuri",
         "Mumbai-Nashik Highway, Igatpuri",
@@ -86,48 +110,26 @@ nashik_district_data = {
         "Shrimantha Baji Rao Road, Trimbakeshwar",
         "Harshul",
     ],
-    "Kalwan": [
-        "Kalwan City",
-        "Meshi",
-        "Konal",
-    ],
-    "Deola": [
-        "Deola City",
-        "Wakhari",
-        "Bhadwan",
-    ],
-    "Surgana": [
-        "Surgana City",
-        "Borro",
-    ],
-    "Peth": [
-        "Peth City",
-        "Devali",
-    ],
-    "Baglan (Satana)": [
-        "Satana City",
-        "Taharat",
-        "Arai",
-    ],
+    "Kalwan": ["Kalwan City", "Meshi", "Konal"],
+    "Deola": ["Deola City", "Wakhari", "Bhadwan"],
+    "Surgana": ["Surgana City", "Borro"],
+    "Peth": ["Peth City", "Devali"],
+    "Baglan (Satana)": ["Satana City", "Taharat", "Arai"],
 }
 
-# 1. जिल्हा (District Fixed to Nashik)
 district_input = st.sidebar.selectbox(
     "१. जिल्हा निवडा (District)", ["Nashik District"]
 )
 
-# 2. तालुका निवडा (Taluka Dropdown)
 selected_taluka = st.sidebar.selectbox(
     "२. तालुका निवडा (Taluka)", list(nashik_district_data.keys())
 )
 
-# 3. एरिया निवडा (Area Dropdown based on selected Taluka)
 selected_area = st.sidebar.selectbox(
     "३. विशिष्ट एरिया निवडा (Area/Locality)",
     nashik_district_data[selected_taluka],
 )
 
-# 4. कॅटेगरी निवडा (Category Dropdown)
 category_input = st.sidebar.selectbox(
     "४. कॅटेगरी निवडा (Category)",
     [
@@ -145,7 +147,6 @@ category_input = st.sidebar.selectbox(
     ],
 )
 
-# 5. भाषा निवडा (Multi-Language Pitch)
 pitch_language = st.sidebar.selectbox(
     "🌐 पिचची भाषा निवडा (Pitch Language)",
     ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
@@ -228,6 +229,7 @@ def fetch_strict_area_places(taluka, area, category, key):
     return pd.DataFrame()
 
 
+# ==================== MAIN CONTENT ====================
 if st.sidebar.button("🎯 Hunt District Leads Now"):
   with st.spinner(
       f"🔍 Fetching real-time leads specifically for {selected_area} ({selected_taluka})..."
@@ -325,3 +327,41 @@ else:
       "👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District"
       " Leads Now'** बटणावर क्लिक करा!"
   )
+
+st.markdown(
+    "<br><br><br><br>", unsafe_allow_html=True
+)  # Extra spacing for footer
+
+# ==================== FORMAL FOOTER ====================
+st.markdown(
+    """
+    <div style="background-color: #0b0b0b; padding: 25px; border-top: 2px solid #D4AF37; margin-top: 50px; border-radius: 8px; font-family: sans-serif; color: #b0b0b0;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
+            <div style="flex: 1; min-width: 250px;">
+                <h3 style="color: #D4AF37; margin-top: 0;">👑 AK MEDIA</h3>
+                <p style="font-size: 13px; line-height: 1.6;">
+                    Building Businesses | Building Brands<br>
+                    नाशिक जिल्ह्यातील ऑटोमेटेड क्लायंट ॲक्विझिशन आणि डिजिटल ब्रँडिंग सोल्यूशन्स.
+                </p>
+            </div>
+            <div style="flex: 1; min-width: 250px;">
+                <h4 style="color: #D4AF37; margin-top: 0;">📞 संपर्क आणि पत्ता</h4>
+                <p style="font-size: 13px; line-height: 1.6;">
+                    <b>फोन:</b> +91 9172082052<br>
+                    <b>ईमेल:</b> the.ak.media56@gmail.com<br>
+                    <b>ऑफिस:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad, Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
+                </p>
+            </div>
+        </div>
+        <hr style="border-color: #333; margin: 15px 0;">
+        <div style="font-size: 11px; color: #777777; line-height: 1.5; text-align: justify;">
+            <b>Disclaimer:</b> AK MEDIA - Hot Client Hunter ही सिस्टीम नाशिक जिल्ह्यातील स्थानिक व्यवसायांचा रिअल-टाइम डेटा शोधण्यासाठी सार्वजनिकरित्या उपलब्ध असलेल्या Google Places API चा वापर करते. ही सिस्टीम केवळ अंतर्गत व्यवसाय संपर्क आणि मार्केटिंग ऑडिट उद्देशांसाठी डिझाइन केली आहे.
+        </div>
+        <hr style="border-color: #222; margin: 15px 0 10px 0;">
+        <div style="text-align: center; font-size: 12px; color: #D4AF37;">
+            © 2026 <b>AK MEDIA</b>. All Rights Reserved.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
