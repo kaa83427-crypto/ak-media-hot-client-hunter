@@ -1,6 +1,6 @@
 import datetime
 import urllib.parse
-from PIL import Image  # 👈 नवीन इम्पोर्ट
+from PIL import Image
 import pandas as pd
 import requests
 import streamlit as st
@@ -33,34 +33,6 @@ st.markdown(
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
   try:
-    # PIL ने इमेज ओपन करून ती कोणत्याही मोडमध्ये (Light/Dark) व्यवस्थित दिसावी म्हणून CSS सह रेंडर करणे
-    st.markdown(
-        """
-            <div style="display: flex; justify-content: center; align-items: center;">
-                <img src="app/static/logo.png" style="width: 150px; max-width: 100%; border-radius: 8px; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); background-color: #0b0b0b; padding: 5px;">
-            </div>
-            """,
-        unsafe_allow_html=True,
-    )
-  except Exception as e:
-    # आपत्कालीन स्थितीसाठी टेक्स्ट हेडर्स
-    st.markdown(
-        "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
-        unsafe_allow_html=True,
-    )
-
-st.markdown(
-    """
-        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
-        <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-# PIL वापरून लोगो अगदी अचूक सेंटरला आणि व्यवस्थित लोड करणे
-col1, col2, col3 = st.columns([2, 1.5, 2])
-with col2:
-  try:
     img = Image.open("logo.png")
     st.image(img, width=160)
   except Exception as e:
@@ -71,7 +43,7 @@ with col2:
 
 st.markdown(
     """
-        <h1 style="color: #D4AF37; margin: 10px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
+        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
         <p style="color: #e0e0e0; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
@@ -279,9 +251,9 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.xlsx"
+          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
       ),
-      mime="text/xlsx",
+      mime="text/csv",
   )
 
   st.markdown("---")
@@ -300,7 +272,7 @@ if "leads_data" in st.session_state and not st.session_state[
 
       if "Marathi" in pitch_language:
         pitch_msg = (
-            f"नमस्कार {row['Business Name']},\n\nमी AK MEDIA (नाशिक) वरून"
+            f"नमस्कार {row['Business Name']},\n\nमी THE AK MEDIA (नाशिक) वरून"
             " बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५"
             " दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश"
             f" कस्टमर्स ऑनलाइन शोधूनच {row['Category']} मध्ये येतात."
@@ -311,9 +283,9 @@ if "leads_data" in st.session_state and not st.session_state[
         )
       elif "Hindi" in pitch_language:
         pitch_msg = (
-            f"नमस्ते {row['Business Name']},\n\nमैं AK MEDIA (नाशिक) से बात कर"
-            " रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से कोई नई"
-            " पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
+            f"नमस्ते {row['Business Name']},\n\nमैं THE AK MEDIA (नाशिक) से"
+            " बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से"
+            " कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
             f" ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स"
             " छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
             " मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट"
@@ -321,7 +293,7 @@ if "leads_data" in st.session_state and not st.session_state[
         )
       else:
         pitch_msg = (
-            f"Hi {row['Business Name']},\n\nI'm reaching out from AK MEDIA"
+            f"Hi {row['Business Name']},\n\nI'm reaching out from THE AK MEDIA"
             " Nashik. I noticed that your social media handles haven't been"
             " active recently.\n\nMost customers nowadays check social media"
             f" presence before visiting a {row['Category']}. Maintaining an"
