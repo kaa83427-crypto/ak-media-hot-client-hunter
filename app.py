@@ -254,9 +254,9 @@ if "leads_data" in st.session_state and not st.session_state[
       label="📥 Export Leads to Excel/CSV",
       data=df.to_csv(index=False),
       file_name=(
-          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
+          f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.xlsx"
       ),
-      mime="text/csv",
+      mime="text/xlsx",
   )
 
   st.markdown("---")
@@ -356,8 +356,8 @@ if "leads_data" in st.session_state and not st.session_state[
         st.download_button(
             label=f"📥 Download Audit Report ({row['Business Name']})",
             data=audit_report_text,
-            file_name=f"Audit_Report_{safe_business_name}.txt",
-            mime="text/plain",
+            file_name=f"Audit_Report_{safe_business_name}.pdf",
+            mime="txet/pdf",
             key=f"audit_{idx}",
         )
 
