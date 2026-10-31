@@ -9,40 +9,56 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-# Custom CSS for Professional Look
+# Custom CSS for Professional Look & Centered Logo Fix
 st.markdown(
     """
     <style>
     .main { background-color: #0e1117; }
     .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
+    
+    /* 100% Center Alignment for Logo via CSS */
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .logo-container img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 160px;
+        border-radius: 8px;
+    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# ==================== FORMAL HEADER WITH PERFECT CENTERED LOGO ====================
+# ==================== FORMAL HEADER WITH ABSOLUTE CENTERED LOGO ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center;">
     """,
     unsafe_allow_html=True,
 )
 
-# 100% अचूक सेंटर करण्यासाठी Streamlit Columns वापरले आहेत
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-  try:
-    img = Image.open("logo.png")
-    st.image(img, width=150)
-  except Exception as e:
-    st.markdown(
-        "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
-        unsafe_allow_html=True,
-    )
+# HTML द्वारे लोगो थेट सेंटरला रेंडर करणे
+try:
+  st.markdown(
+      '<div class="logo-container"><img src="logo.png"></div>',
+      unsafe_allow_html=True,
+  )
+except:
+  st.markdown(
+      "<h2 style='color: #D4AF37; text-align: center;'>THE AK MEDIA</h2>",
+      unsafe_allow_html=True,
+  )
 
 st.markdown(
     """
-        <h1 style="color: #D4AF37; margin: 15px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
+        <h1 style="color: #D4AF37; margin: 5px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px; text-align: center;">THE AK MEDIA</h1>
         <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px; text-align: center;">Building Businesses | Building Brands</p>
     </div>
     """,
