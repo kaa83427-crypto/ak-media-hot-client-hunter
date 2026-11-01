@@ -36,9 +36,9 @@ if "display_name" not in st.session_state:
 
 if "team_activity" not in st.session_state:
   st.session_state["team_activity"] = {
-      "Ankush (Admin)": {"leads": 0, "pitches": 0},
-      "Team Member 1": {"leads": 0, "pitches": 0},
-      "Team Member 2": {"leads": 0, "pitches": 0},
+      "MR.AK (Admin)": {"leads": 0, "pitches": 0},
+      "Hari Shinde": {"leads": 0, "pitches": 0},
+      "Somnath Pardhi": {"leads": 0, "pitches": 0},
   }
 
 if "selected_page" not in st.session_state:
@@ -51,10 +51,10 @@ USERS_DB = {
     "ankush_ceo": {
         "pass": "akmedia2026",
         "role": "Admin",
-        "name": "Ankush (CEO)",
+        "name": " MR.AK (CEO)",
     },
-    "team1": {"pass": "team123", "role": "Member", "name": "Team Member 1"},
-    "team2": {"pass": "team123", "role": "Member", "name": "Team Member 2"},
+    "HS123": {"pass": "akmedia123", "role": "Sales Representative", "name": "Hari Shinde"},
+    "SP123": {"pass": "akmedia123", "role": "Sales Representative", "name": "Somnath Pardhi"},
 }
 
 if not st.session_state["logged_in"]:
@@ -72,7 +72,7 @@ if not st.session_state["logged_in"]:
   with col2:
     st.subheader("🔐 Team Portal Login")
     st.info(
-        "टीप: युजरआयडी आणि पासवर्ड फक्त द एके मीडियाच्या ऑनरकडून (Ankush)"
+        "टीप: युजरआयडी आणि पासवर्ड फक्त द एके मीडियाच्या ऑनरकडून (MR.AK)"
         " प्रदान केला जाईल."
     )
 
