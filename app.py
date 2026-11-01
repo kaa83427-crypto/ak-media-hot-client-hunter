@@ -34,7 +34,7 @@ if "role" not in st.session_state:
 if "display_name" not in st.session_state:
   st.session_state["display_name"] = ""
 
-# Team Activity & Leaderboard Database (As per your custom team)
+# Team Activity & Leaderboard Database
 if "team_activity" not in st.session_state:
   st.session_state["team_activity"] = {
       "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
@@ -142,50 +142,122 @@ with nav_col3:
 
 st.markdown("---")
 
-# ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY ====================
+# ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY WITH LANGUAGE SELECTOR ====================
 if st.session_state["selected_page"] == "Message Library":
   st.title("💬 Quick Message Templates / Copy-Paste Library")
   st.write(
-      "### 🚀 वेगवेगळ्या व्यवसायांसाठी तयार केलेले कॉल्स आणि व्हॉट्सॲप पिचेस"
-      " (एका क्लिकवर कॉपी करा)"
+      "### 🚀 वेगवेगळ्या व्यवसायांसाठी आणि भाषांसाठी तयार केलेले कॉल्स आणि"
+      " व्हॉट्सॲप पिचेस"
   )
 
-  tab1, tab2, tab3 = st.tabs(["☕ Cafes & Restaurants", "🏋️ Gyms & Fitness", "🛍️ Retail & Clothing"])
+  lib_lang = st.selectbox(
+      "🌐 गॅलरीची भाषा निवडा (Select Message Language)",
+      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
+  )
 
-  with tab1:
-    st.subheader("Cafe / Restaurant Pitch Template")
-    cafe_template = (
-        "नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही"
-        " तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन"
-        " पोस्ट किंवा रील्स अपडेट झालेली नाहीत.\n\nआजकाल तरुण वर्ग आणि"
-        " कस्टमर्स ऑनलाइन सर्च करूनच कॅफे निवडतात. सोशल मीडिया इन-ॲक्टिव्ह"
-        " राहिल्याने नवीन कस्टमर्स प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक"
-        " जिल्ह्यातील कॅफेसाठी प्रोफेशनल रील्स, ग्राफिक डिझाईन आणि सोशल मीडिया"
-        " मॅनेजमेंट हँडल करतो. तुमच्या पेजचा फ्री ऑडिट रिपोर्ट हवा असल्यास"
-        " नक्की सांगा!"
-    )
-    st.code(cafe_template, language="text")
+  tab1, tab2, tab3 = st.tabs(
+      ["☕ Cafes & Restaurants", "🏋️ Gyms & Fitness", "🛍️ Retail & Clothing"]
+  )
 
-  with tab2:
-    st.subheader("Gym / Fitness Club Pitch Template")
-    gym_template = (
-        "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस"
-        " लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत"
-        " असतात. तुमच्या जिमचे पेज सध्या इन-ॲक्टिव्ह दिसतेय.\n\nआम्ही जिमचे"
-        " ब्राँडिंग, एनर्जेटिक रील्स आणि लोकल लीड जनरेशन कॅम्पेन हँडल करतो."
-        " ज्यामुळे नवीन मेंबरशिप वाढण्यास मदत होईल. मोफत सल्ला हवा का?"
-    )
-    st.code(gym_template, language="text")
+  if "Marathi" in lib_lang:
+    with tab1:
+      st.subheader("☕ कॅफे / रेस्टॉरंट - मराठी पिच")
+      st.code(
+          "नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही"
+          " तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन"
+          " पोस्ट किंवा रील्स अपडेट झालेली नाहीत.\n\nआजकाल तरुण वर्ग आणि"
+          " कस्टमर्स ऑनलाइन सर्च करूनच कॅफे निवडतात. सोशल मीडिया इन-ॲक्टिव्ह"
+          " राहिल्याने नवीन कस्टमर्स प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक"
+          " जिल्ह्यातील कॅफेसाठी प्रोफेशनल रील्स, ग्राफिक डिझाईन आणि सोशल मीडिया"
+          " मॅनेजमेंट हँडल करतो. तुमच्या पेजचा फ्री ऑडिट रिपोर्ट हवा असल्यास"
+          " नक्की सांगा!",
+          language="text",
+      )
+    with tab2:
+      st.subheader("🏋️ जिम / फिटनेस क्लब - मराठी पिच")
+      st.code(
+          "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस"
+          " लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत"
+          " असतात. तुमच्या जिमचे पेज सध्या इन-ॲक्टिव्ह दिसतेय.\n\nआम्ही जिमचे"
+          " ब्राँडिंग, एनर्जेटिक रील्स आणि लोकल लीड जनरेशन कॅम्पेन हँडल करतो."
+          " ज्यामुळे नवीन मेंबरशिप वाढण्यास मदत होईल. मोफत सल्ला हवा का?",
+          language="text",
+      )
+    with tab3:
+      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोअर - मराठी पिच")
+      st.code(
+          "नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या"
+          " दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल"
+          " ऑफर्स आणि नवीन स्टॉकचे प्रमोशन सोशल मीडियावर असणे खूप गरजेचे आहे.\n\nआमच्या"
+          " डिजिटल सर्व्हिसेसबद्दल माहिती हवी असल्यास नक्की कळवा!",
+          language="text",
+      )
 
-  with tab3:
-    st.subheader("Retail / Clothing Store Pitch Template")
-    retail_template = (
-        "नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या"
-        " दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल"
-        " ऑफर्स आणि नवीन स्टॉकचे प्रमोशन सोशल मीडियावर असणे खूप गरजेचे आहे.\n\nआमच्या"
-        " डिजिटल सर्व्हिसेसबद्दल माहिती हवी असल्यास नक्की कळवा!"
-    )
-    st.code(retail_template, language="text")
+  elif "Hindi" in lib_lang:
+    with tab1:
+      st.subheader("☕ कैफे / रेस्टोरेंट - हिंदी पिच")
+      st.code(
+          "नमस्ते [Business Name],\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा"
+          " हूँ. हमने आपका सोशल मीडिया पेज देखा, पिछले कुछ दिनों से उस पर"
+          " कोई नई पोस्ट या रील्स अपडेट नहीं हुई है.\n\nआजकल कस्टमर्स ऑनलाइन सर्च"
+          " करके ही कैफे चुनते हैं. सोशल मीडिया इन-एक्टिव रहने से नए कस्टमर्स"
+          " कॉम्पिटिटर्स के पास जा सकते हैं.\n\nहम नाशिक रीजन के कैफे के लिए"
+          " प्रोफेशनल रील्स, ग्राफिक डिज़ाइन और सोशल मीडिया मैनेजमेंट हैंडल"
+          " करते हैं. क्या आपके पेज के लिए फ्री ऑडिट रिपोर्ट भेज दें?",
+          language="text",
+      )
+    with tab2:
+      st.subheader("🏋️ जिम / फिटनेस क्लब - हिंदी पिच")
+      st.code(
+          "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) से संपर्क कर रहे हैं."
+          " फिटनेस लवर्स हमेशा सोशल मीडिया पर नए ऑफर्स और वर्कआउट वीडियो खोजते"
+          " रहते हैं. आपकी जिम का पेज फिलहाल इन-एक्टिव दिख रहा है.\n\nहम जिम"
+          " ब्रांडिंग, एनर्जेटिक रील्स और लोकल लीड जनरेशन कैंपेन हैंडल करते हैं."
+          " क्या फ्री कंसल्टेशन चाहिए?",
+          language="text",
+      )
+    with tab3:
+      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोर - हिंदी पिच")
+      st.code(
+          "नमस्ते [Business Name],\n\nमैं THE AK MEDIA से बात कर रहा हूँ. आपके"
+          " स्टोर की डिजिटल ब्रांडिंग बढ़ाने में हम मदद कर सकते हैं. फेस्टिवल"
+          " ऑफर्स और नए स्टॉक का प्रमोशन सोशल मीडिया पर होना बहुत जरूरी है.\n\nहमारी"
+          " डिजिटल सर्विसेज के बारे में जानकारी चाहिए क्या?",
+          language="text",
+      )
+
+  else:  # English
+    with tab1:
+      st.subheader("☕ Cafe / Restaurant - English Pitch")
+      st.code(
+          "Hi [Business Name],\n\nI'm reaching out from THE AK MEDIA Nashik. We"
+          " checked your social media presence and noticed that your handles"
+          " haven't been active recently.\n\nMost modern customers search"
+          " online before visiting a cafe. Staying inactive means losing"
+          " potential footfall to competitors.\n\nWe manage professional"
+          " social media, reels, and branding for businesses across Nashik."
+          " Would you like a Free Social Media Audit Report?",
+          language="text",
+      )
+    with tab2:
+      st.subheader("🏋️ Gym / Fitness - English Pitch")
+      st.code(
+          "Hi [Business Name],\n\nCalling from THE AK MEDIA Nashik. Fitness"
+          " enthusiasts actively look for active workout content and offers"
+          " online. Your gym page looks inactive right now.\n\nWe specialize in"
+          " fitness branding, high-energy reels, and local lead generation."
+          " Interested in a quick free audit?",
+          language="text",
+      )
+    with tab3:
+      st.subheader("🛍️ Retail / Clothing - English Pitch")
+      st.code(
+          "Hi [Business Name],\n\nGreeting from THE AK MEDIA. We can help scale"
+          " your store's digital presence and run targeted local promotions"
+          " for festive offers and new inventory.\n\nWould you like to explore"
+          " our digital branding solutions?",
+          language="text",
+      )
 
   if st.button("⬅️ Back to Lead Dashboard"):
     st.session_state["selected_page"] = "Lead Hunter Dashboard"
@@ -308,7 +380,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   st.sidebar.markdown("---")
   st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
-  # Find King of the day based on max pitches + leads
   sorted_team = sorted(
       st.session_state["team_activity"].items(),
       key=lambda x: x[1]["pitches"] + x[1]["leads"],
