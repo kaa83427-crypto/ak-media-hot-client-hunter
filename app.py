@@ -8,14 +8,13 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-# Custom CSS for Professional Look & Print Styling with Golden Border
+# Custom CSS for Professional Look & Print Styling
 st.markdown(
     """
     <style>
     .main { background-color: #0e1117; }
     .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
     
-    /* Print media styling for clean PDF export via Ctrl+P */
     @media print {
         body { background-color: white !important; color: black !important; }
         .sidebar, button, header, footer { display: none !important; }
@@ -25,26 +24,96 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Initialize Session State for Team Activity Tracker & Navigation
-if "leads_hunted_count" not in st.session_state:
-  st.session_state["leads_hunted_count"] = 0
-if "pitches_sent_count" not in st.session_state:
-  st.session_state["pitches_sent_count"] = 0
+# ==================== INITIALIZE SESSION STATE ====================
+if "logged_in" not in st.session_state:
+  st.session_state["logged_in"] = False
+if "username" not in st.session_state:
+  st.session_state["username"] = ""
+if "role" not in st.session_state:
+  st.session_state["role"] = ""
+
+# Global Team Activity Database in Session State (Admin can view all)
+if "team_activity" not in st.session_state:
+  st.session_state["team_activity"] = {
+      "Ankush (Admin)": {"leads": 0, "pitches": 0},
+      "Team Member 1": {"leads": 0, "pitches": 0},
+      "Team Member 2": {"leads": 0, "pitches": 0},
+  }
+
 if "selected_page" not in st.session_state:
   st.session_state["selected_page"] = "Lead Hunter Dashboard"
 if "active_audit_lead" not in st.session_state:
   st.session_state["active_audit_lead"] = None
 
-# ==================== FORMAL HEADER ====================
+# ==================== LOGIN SYSTEM ====================
+# Predefined Users (Created strictly by Admin - Ankush)
+USERS_DB = {
+    "ankush_ceo": {
+        "pass": "akmedia2026",
+        "role": "Admin",
+        "name": "Ankush (CEO)",
+    },
+    "team1": {"pass": "team123", "role": "Member", "name": "Team Member 1"},
+    "team2": {"pass": "team123", "role": "Member", "name": "Team Member 2"},
+}
+
+if not st.session_state["logged_in"]:
+  st.markdown(
+      """
+        <div style="background-color: #0b0b0b; padding: 30px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; text-align: center;">
+            <h1 style="color: #D4AF37; margin: 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px;">THE AK MEDIA</h1>
+            <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands — Secure Login</p>
+        </div>
+        """,
+      unsafe_allow_html=True,
+  )
+
+  col1, col2, col3 = st.columns([1, 1.5, 1])
+  with col2:
+    st.subheader("🔐 Team Portal Login")
+    st.info(
+        "टीप: युजरआयडी आणि पासवर्ड फक्त द एके मीडियाच्या ऑनरकडून (Ankush)"
+        " प्रदान केला जाईल."
+    )
+
+    input_user = st.text_input("👤 Enter User ID")
+    input_pass = st.text_input("🔑 Enter Password", type="password")
+
+    if st.button("🚀 Login to System"):
+      if input_user in USERS_DB and USERS_DB[input_user]["pass"] == input_pass:
+        st.session_state["logged_in"] = True
+        st.session_state["username"] = input_user
+        st.session_state["role"] = USERS_DB[input_user]["role"]
+        st.session_state["display_name"] = USERS_DB[input_user]["name"]
+        st.success(
+            f"✅ Welcome back, {st.session_state['display_name']}! Loading"
+            " dashboard..."
+        )
+        st.rerun()
+      else:
+        st.error("❌ चुकाचा युजरआयडी किंवा पासवर्ड! कृपया पुन्हा प्रयत्न करा.")
+  st.stop()
+
+# ==================== FORMAL HEADER (Post Login) ====================
 st.markdown(
     """
-    <div style="background-color: #0b0b0b; padding: 25px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center;">
-        <h1 style="color: #D4AF37; margin: 5px 0 0 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px;">THE AK MEDIA</h1>
-        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
+    <div style="background-color: #0b0b0b; padding: 20px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); text-align: center;">
+        <h1 style="color: #D4AF37; margin: 5px 0 0 0; font-family: 'Georgia', serif; font-size: 28px; letter-spacing: 2px;">THE AK MEDIA</h1>
+        <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 13px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+# Top Bar with Logout & User Info
+top_c1, top_c2, top_c3 = st.columns([2, 2, 1])
+top_c1.write(
+    f"👤 **Logged in as:** {st.session_state['display_name']} ("
+    f"*{st.session_state['role']}*) [{cite: 3, 4, 6]"
+)
+if top_c3.button("🚪 Logout"):
+  st.session_state["logged_in"] = False
+  st.rerun()
 
 # Navigation Menu Bar inside App
 nav_col1, nav_col2 = st.columns(2)
@@ -170,13 +239,30 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
       ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
   )
 
-  # Team Performance Tracker in Sidebar
+  # ==================== ADMIN MASTER TRACKER VS MEMBER TRACKER ====================
   st.sidebar.markdown("---")
-  st.sidebar.subheader("📊 Team Activity Tracker")
-  st.sidebar.metric(
-      "Total Leads Hunted", st.session_state["leads_hunted_count"]
-  )
-  st.sidebar.metric("Pitches / Actions", st.session_state["pitches_sent_count"])
+  if st.session_state["role"] == "Admin":
+    st.sidebar.subheader("👑 CEO Master Team Tracker")
+    st.sidebar.write(
+        "सर्व टीम मेंबर्सचे लाईव्ह काम इथे दिसेल[cite: 3, 4, 6]:"
+    )
+    for member, stats in st.session_state["team_activity"].items():
+      st.sidebar.markdown(
+          f"**{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
+          f" `{stats['pitches']}`",
+          unsafe_allow_html=True,
+      )
+  else:
+    st.sidebar.subheader("📊 My Activity Tracker")
+    current_user_name = st.session_state["display_name"]
+    if current_user_name not in st.session_state["team_activity"]:
+      st.session_state["team_activity"][current_user_name] = {
+          "leads": 0,
+          "pitches": 0,
+      }
+    my_stats = st.session_state["team_activity"][current_user_name]
+    st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
+    st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
 
   secret_key = st.secrets.get("GOOGLE_API_KEY", "")
   if not secret_key:
@@ -260,7 +346,12 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
           selected_taluka, selected_area, category_input, api_key
       )
       st.session_state["leads_data"] = df
-      st.session_state["leads_hunted_count"] += len(df)
+
+      # Update team activity count for logged in user
+      curr_user = st.session_state["display_name"]
+      if curr_user not in st.session_state["team_activity"]:
+        st.session_state["team_activity"][curr_user] = {"leads": 0, "pitches": 0}
+      st.session_state["team_activity"][curr_user]["leads"] += len(df)
 
   if "leads_data" in st.session_state and not st.session_state[
       "leads_data"
@@ -338,7 +429,7 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
         action_html = f"""
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                     <a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
-                    <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
+                    <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;" onclick="parent.incrementPitch()">📲 WhatsApp</button></a>
                 </div>
                 """
         c5.markdown(action_html, unsafe_allow_html=True)
@@ -348,6 +439,10 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
         ):
           st.session_state["active_audit_lead"] = row.to_dict()
           st.session_state["selected_page"] = "Audit Report View"
+          # Track pitch/action click
+          curr_user = st.session_state["display_name"]
+          if curr_user in st.session_state["team_activity"]:
+            st.session_state["team_activity"][curr_user]["pitches"] += 1
           st.rerun()
 
         st.markdown(
@@ -379,11 +474,8 @@ elif st.session_state["selected_page"] == "Audit Report View":
 
     st.markdown("---")
 
-    # Audit Report HTML with Premium Golden Border (#D4AF37) and Header included
     printable_report_html = f"""
-        <div style="background-color: white; color: black; padding: 40px; border-radius: 12px; font-family: 'Helvetica', sans-serif; border: 3px solid #D4AF37; max-width: 800px; margin: auto; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);">
-            
-            <!-- PDF Header with THE AK MEDIA and System Name -->
+        <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
                 <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
                 <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">GENERATED BY HOT CLIENT HUNTER SYSTEM</p>
@@ -462,8 +554,7 @@ elif st.session_state["selected_page"] == "Audit Report View":
         "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
         "लॅपटॉपवर किंवा कॉम्प्युटरवर असताना फक्त **`Ctrl + P`** (Mac वर `Cmd +"
         " P`) दाबा. प्रिंट विंडो उघडल्यावर प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडा आणि सेव्ह करा. आता रिपोर्टला मस्त **गोल्डन बॉर्डर** आणि वर"
-        " **THE AK MEDIA** चे हेडर एकदम परफेक्ट दिसेल[cite: 8]!"
+        " निवडा आणि सेव्ह करा[cite: 3, 4, 6]!"
     )
 
 # ==================== FORMAL FOOTER ====================
