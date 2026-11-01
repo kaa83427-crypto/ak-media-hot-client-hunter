@@ -61,8 +61,8 @@ st.markdown("---")
 if st.session_state["selected_page"] == "Lead Hunter Dashboard":
   st.title("🎯 Hot Client Hunter & AI Lead System (Nashik District)")
   st.write(
-      "### 🚀 Nashik jilhytil in-active clients shodha, AI score tpaasa ani"
-      " eka clickvar call/pitch pathva!"
+      "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा, AI स्कोर तपासा आणि"
+      " एका क्लिकवर कॉल/पच पाठवा!"
   )
 
   # ==================== SIDEBAR FILTERS & TEAM TRACKER ====================
@@ -139,15 +139,18 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
       "Baglan (Satana)": ["Satana City", "Taharat", "Arai"],
   }
 
-  district_input = st.sidebar.selectbox("1. Jilha Nivda", ["Nashik District"])
+  district_input = st.sidebar.selectbox(
+      "१. जिल्हा निवडा (District)", ["Nashik District"]
+  )
   selected_taluka = st.sidebar.selectbox(
-      "2. Taluka Nivda", list(nashik_district_data.keys())
+      "२. तालुका निवडा (Taluka)", list(nashik_district_data.keys())
   )
   selected_area = st.sidebar.selectbox(
-      "3. Area Nivda", nashik_district_data[selected_taluka]
+      "३. विशिष्ट एरिया निवडा (Area/Locality)",
+      nashik_district_data[selected_taluka],
   )
   category_input = st.sidebar.selectbox(
-      "4. Category Nivda",
+      "४. कॅटेगरी निवडा (Category)",
       [
           "Cafe",
           "Restaurant",
@@ -163,7 +166,8 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
       ],
   )
   pitch_language = st.sidebar.selectbox(
-      "🌐 Pitch Language", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"]
+      "🌐 पिचची भाषा निवडा (Pitch Language)",
+      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
   )
 
   # Team Performance Tracker in Sidebar
@@ -177,7 +181,7 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
   secret_key = st.secrets.get("GOOGLE_API_KEY", "")
   if not secret_key:
     api_key = st.sidebar.text_input(
-        "🔑 Google API Key Taka", type="password", help="Ithe tuhi API Key taka"
+        "🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक"
     )
   else:
     api_key = secret_key
@@ -185,7 +189,7 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
   def fetch_strict_area_places(taluka, area, category, key):
     if not key:
-      st.error("⚠️ Google API Key sapadli nahi!")
+      st.error("⚠️ Google API Key सापडली नाही!")
       return pd.DataFrame()
 
     url = "https://places.googleapis.com/v1/places:searchText"
@@ -352,32 +356,37 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
         )
   else:
     st.info(
-        "👈 Dāvya bājulā jilha, taluka, area ani category nivdun **'Hunt District"
-        " Leads Now'** button var click kara!"
+        "👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District"
+        " Leads Now'** बटणावर क्लिक करा!"
     )
 
 # ==================== PAGE 2: DEDICATED PRINT-READY AUDIT REPORT SCREEN ====================
 elif st.session_state["selected_page"] == "Audit Report View":
-    if st.session_state["active_audit_lead"] is None:
-        st.warning("⚠️ Konthihi lead nivaleli nahi. Kripya dashboard var jaun kontya pan client samoril 'Open Print-Ready Report' var click kara.")
-        if st.button("⬅️ Back to Dashboard"):
-            st.session_state["selected_page"] = "Lead Hunter Dashboard"
-            st.rerun()
-    else:
-        lead = st.session_state["active_audit_lead"]
+  if st.session_state["active_audit_lead"] is None:
+    st.warning(
+        "⚠️ कोणतीही लीड निवडलेली नाही. कृपया डॅशबोर्डवर जाऊन कोणत्याही क्लायंटच्या"
+        " समोर दिलेल्या **'Open Print-Ready Report'** बटणावर क्लिक करा."
+    )
+    if st.button("⬅️ Back to Dashboard"):
+      st.session_state["selected_page"] = "Lead Hunter Dashboard"
+      st.rerun()
+  else:
+    lead = st.session_state["active_audit_lead"]
 
-        if st.button("⬅️ Back to Lead Dashboard"):
-            st.session_state["selected_page"] = "Lead Hunter Dashboard"
-            st.rerun()
+    if st.button("⬅️ Back to Lead Dashboard"):
+      st.session_state["selected_page"] = "Lead Hunter Dashboard"
+      st.rerun()
 
-        st.markdown("---")
+    st.markdown("---")
 
-        # Exact HTML Code format as requested by you
-        printable_report_html = f"""
+    # Exact HTML Code format with THE AK MEDIA header included inside the report container
+    printable_report_html = f"""
         <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
+            
+            <!-- PDF Header with THE AK MEDIA and System Name -->
             <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
-                <h2 style="color: #0b0b0b; margin: 0; font-size: 24px; letter-spacing: 1px;">THE AK MEDIA</h2>
-                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">Generated by Hot Client Hunter System</p>
+                <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">GENERATED BY HOT CLIENT HUNTER SYSTEM</p>
             </div>
             
             <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Business Profile</h3>
@@ -446,13 +455,17 @@ elif st.session_state["selected_page"] == "Audit Report View":
         </div>
         """
 
-        st.markdown(printable_report_html, unsafe_allow_html=True)
+    st.markdown(printable_report_html, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.info(
-            "💡 **Print kashi kadhal kinva PDF kashi save karnar?**\n"
-            "Laptop varun fakt **`Ctrl + P`** daba. Print window madhye destination la **'Save as PDF'** select kara, mhanje ekdam perfect layout madhye PDF save hoil!"
-        )
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.info(
+        "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
+        "लॅपटॉपवर किंवा कॉम्प्युटरवर असताना फक्त **`Ctrl + P`** (Mac वर `Cmd +"
+        " P`) दाबा. प्रिंट विंडो उघडल्यावर प्रिन्टरच्या जागी **'Save as PDF'"
+        " निवडा आणि सेव्ह करा. आता पीडीएफच्या वरच्या बाजूला 'THE AK MEDIA' आणि"
+        " 'GENERATED BY HOT CLIENT HUNTER SYSTEM' एकदम परफेक्ट दिसेल!"
+    )
+
 # ==================== FORMAL FOOTER ====================
 st.markdown(
     """
@@ -462,21 +475,21 @@ st.markdown(
                 <h3 style="color: #D4AF37; margin-top: 0;">THE AK MEDIA</h3>
                 <p style="font-size: 13px; line-height: 1.6; color: #E0E0E0;">
                     Building Businesses | Building Brands<br>
-                    Nashik jilhytil automated client acquisition ani digital branding solutions.
+                    नाशिक जिल्ह्यातील ऑटोमेटेड क्लायंट ॲक्विझिशन आणि डिजिटल ब्रँडिंग सोल्यूशन्स.
                 </p>
             </div>
             <div style="flex: 1; min-width: 250px;">
-                <h4 style="color: #D4AF37; margin-top: 0;">📞 Sampark ani Patta</h4>
+                <h4 style="color: #D4AF37; margin-0;">📞 संपर्क आणि पत्ता</h4>
                 <p style="font-size: 13px; line-height: 1.6; color: #E0E0E0;">
-                    <b>Phone:</b> +91 9172082052<br>
-                    <b>Email:</b> the.ak.media56@gmail.com<br>
-                    <b>Office:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad, Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
+                    <b>फोन:</b> +91 9172082052<br>
+                    <b>ईमेल:</b> the.ak.media56@gmail.com<br>
+                    <b>ऑफिस:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad, Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
                 </p>
             </div>
         </div>
         <hr style="border-color: #333; margin: 15px 0;">
         <div style="font-size: 11px; color: #AAAAAA; line-height: 1.5; text-align: justify;">
-            <b>Disclaimer:</b> THE AK MEDIA - Hot Client Hunter hi system Nashik jilhytil sthanik vyavsayancha real-time data shodhnathi sarvjanikritya uplabdh aslelya Google Places API cha vaparte. Hi system keval antargat vyavsay sampark ani marketing audit uddeshansathi design keli ahe.
+            <b>Disclaimer:</b> THE AK MEDIA - Hot Client Hunter ही सिस्टीम नाशिक जिल्ह्यातील स्थानिक व्यवसायांचा रिअल-टाइम डेटा शोधण्यासाठी सार्वजनिकरित्या उपलब्ध असलेल्या Google Places API चा वापर करते. ही सिस्टीम केवळ अंतर्गत व्यवसाय संपर्क आणि मार्केटिंग ऑडिट उद्देशांसाठी डिझाइन केली आहे.
         </div>
         <hr style="border-color: #222; margin: 15px 0 10px 0;">
         <div style="text-align: center; font-size: 12px; color: #D4AF37;">
