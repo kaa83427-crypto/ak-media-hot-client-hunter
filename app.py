@@ -31,8 +31,9 @@ if "username" not in st.session_state:
   st.session_state["username"] = ""
 if "role" not in st.session_state:
   st.session_state["role"] = ""
+if "display_name" not in st.session_state:
+  st.session_state["display_name"] = ""
 
-# Global Team Activity Database in Session State (Admin can view all)
 if "team_activity" not in st.session_state:
   st.session_state["team_activity"] = {
       "Ankush (Admin)": {"leads": 0, "pitches": 0},
@@ -46,7 +47,6 @@ if "active_audit_lead" not in st.session_state:
   st.session_state["active_audit_lead"] = None
 
 # ==================== LOGIN SYSTEM ====================
-# Predefined Users (Created strictly by Admin - Ankush)
 USERS_DB = {
     "ankush_ceo": {
         "pass": "akmedia2026",
@@ -109,7 +109,7 @@ st.markdown(
 top_c1, top_c2, top_c3 = st.columns([2, 2, 1])
 top_c1.write(
     f"👤 **Logged in as:** {st.session_state['display_name']} ("
-    f"*{st.session_state['role']}*) [{cite: 3, 4, 6]"
+    f"*{st.session_state['role']}*)"
 )
 if top_c3.button("🚪 Logout"):
   st.session_state["logged_in"] = False
@@ -243,9 +243,7 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
   st.sidebar.markdown("---")
   if st.session_state["role"] == "Admin":
     st.sidebar.subheader("👑 CEO Master Team Tracker")
-    st.sidebar.write(
-        "सर्व टीम मेंबर्सचे लाईव्ह काम इथे दिसेल[cite: 3, 4, 6]:"
-    )
+    st.sidebar.write("सर्व टीम मेंबर्सचे लाईव्ह काम इथे दिसेल:")
     for member, stats in st.session_state["team_activity"].items():
       st.sidebar.markdown(
           f"**{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
@@ -347,7 +345,6 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
       )
       st.session_state["leads_data"] = df
 
-      # Update team activity count for logged in user
       curr_user = st.session_state["display_name"]
       if curr_user not in st.session_state["team_activity"]:
         st.session_state["team_activity"][curr_user] = {"leads": 0, "pitches": 0}
@@ -429,7 +426,7 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
         action_html = f"""
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                     <a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
-                    <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;" onclick="parent.incrementPitch()">📲 WhatsApp</button></a>
+                    <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
                 </div>
                 """
         c5.markdown(action_html, unsafe_allow_html=True)
@@ -439,7 +436,6 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
         ):
           st.session_state["active_audit_lead"] = row.to_dict()
           st.session_state["selected_page"] = "Audit Report View"
-          # Track pitch/action click
           curr_user = st.session_state["display_name"]
           if curr_user in st.session_state["team_activity"]:
             st.session_state["team_activity"][curr_user]["pitches"] += 1
