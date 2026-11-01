@@ -129,21 +129,103 @@ if top_c3.button("🚪 Logout"):
   st.rerun()
 
 # Navigation Menu Bar inside App
-nav_col1, nav_col2, nav_col3 = st.columns(3)
+nav_col1, nav_col2, nav_col3, nav_col4 = st.columns(4)
 with nav_col1:
   if st.button("🎯 Lead Hunter Dashboard"):
     st.session_state["selected_page"] = "Lead Hunter Dashboard"
 with nav_col2:
-  if st.button("📑 Professional Print-Ready Audit Report View"):
+  if st.button("📑 Audit Report View"):
     st.session_state["selected_page"] = "Audit Report View"
 with nav_col3:
-  if st.button("💬 Quick Message Library"):
+  if st.button("💬 Message Library"):
     st.session_state["selected_page"] = "Message Library"
+with nav_col4:
+  if st.button("💡 Objection Cheat-Sheet"):
+    st.session_state["selected_page"] = "Objection Cheat Sheet"
 
 st.markdown("---")
 
-# ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY WITH LANGUAGE SELECTOR ====================
-if st.session_state["selected_page"] == "Message Library":
+# ==================== PAGE 4: MULTI-LANGUAGE OBJECTION HANDLING CHEAT SHEET ====================
+if st.session_state["selected_page"] == "Objection Cheat Sheet":
+  st.title("💡 Objection Handling Cheat-Sheet")
+  st.write(
+      "### 🛡️ क्लायंटच्या प्रश्नांना/कारणांना (Objections) उडवण्यासाठी"
+      " रेडीमेड उत्तरं!"
+  )
+
+  obj_lang = st.selectbox(
+      "🌐 भाषेची निवड करा (Select Objection Language)",
+      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
+  )
+
+  if "Marathi" in obj_lang:
+    with st.expander("❌ 'आम्ही आधीच सोशल मीडिया करतोय / दुसरी एजन्सी आहे'"):
+      st.write(
+          "**उत्तर:** 'खूप छान सर! पण आम्ही तुमच्या पेजचे ऑडिट केले तेव्हा गेल्या"
+          " १५ दिवसांत नवीन पोस्ट/रील दिसली नाही. तुमच्या सध्याच्या एजन्सीसोबत"
+          " तुम्ही मोफत सोशल मीडिया ऑडिट कम्पेअर करून बघू शकता!'"
+      )
+    with st.expander("❌ 'सध्या बजेट नाहीये / महाग वाटतंय'"):
+      st.write(
+          "**उत्तर:** 'सर, सोशल मीडिया हा खर्च नसून नवीन ग्राहक मिळवण्याची"
+          " इन्व्हेस्टमेंट आहे. १ नवीन ग्राहक जरी वाढला तरी आमची फी वसूल"
+          " होते. आम्ही अगदी रिझनेबल पॅकेज देतो, एकदा ट्राय करा!'"
+      )
+    with st.expander("❌ 'आम्हाला गरज नाहीये / आमचा बिझनेस असाच चालतो'"):
+      st.write(
+          "**उत्तर:** 'सर, तुमचा बिझनेस भारी आहेच, पण आजकाल ग्राहक दुकानात"
+          " येण्याआधी ऑनलाइन सर्च करतात. तुमचे प्रतिस्पर्धी सोशल मीडियावर"
+          " ॲक्टिव्ह आहेत, त्यामुळे जुने क्लायंट्स टिकवण्यासाठी हे गरजेचे आहे!'"
+      )
+
+  elif "Hindi" in obj_lang:
+    with st.expander("❌ 'हम पहले से सोशल मीडिया कर रहे हैं'"):
+      st.write(
+          "**उत्तर:** 'बहुत बढ़िया सर! लेकिन जब हमने आपका पेज चेक किया, तो पिछले"
+          " 15 दिनों से कोई पोस्ट नहीं दिखा. आप अपनी करंट एजेंसी के साथ हमारा फ्री"
+          " ऑडिट रिपोर्ट कम्पेयर करके देख सकते हैं!'"
+      )
+    with st.expander("❌ 'अभी बजट नहीं है / महंगा है'"):
+      st.write(
+          "**उत्तर:** 'सर, सोशल मीडिया खर्चा नहीं बल्कि नए कस्टमर्स लाने का"
+          " इन्वेस्टमेंट है. 1-2 नए कस्टमर आने पर ही हमारी फीस कवर हो जाती"
+          " है. हमारा पैकेज काफी अफोर्डेबल है!'"
+      )
+    with st.expander("❌ 'हमें जरूरत नहीं है'"):
+      st.write(
+          "**उत्तर:** 'सर, आपका काम अच्छा है लेकिन आजकल कस्टमर दुकान पर आने से"
+          " पहले ऑनलाइन सर्च करते हैं. आपके कॉम्पिटिटर्स एक्टिव हैं, इसलिए ऑनलाइन"
+          " रहना बहुत जरूरी है!'"
+      )
+
+  else:  # English
+    with st.expander(
+        "❌ 'We are already doing social media / Have another agency'"
+    ):
+      st.write(
+          "**Response:** 'That's great sir! However, we noticed no updates on"
+          " your page for the last 15 days. We offer a Free Social Media Audit"
+          " so you can compare the output with your current agency.'"
+      )
+    with st.expander("❌ 'We don't have the budget / Too expensive'"):
+      st.write(
+          "**Response:** 'Sir, social media marketing is an investment to bring"
+          " in new walk-in clients. Acquiring just 1-2 new recurring clients"
+          " covers our monthly cost. We offer flexible plans!'"
+      )
+    with st.expander("❌ 'We don't need digital marketing'"):
+      st.write(
+          "**Response:** 'Sir, while your word-of-mouth is strong, modern"
+          " customers check online profiles first. Competitors in your area are"
+          " aggressively posting reels to capture local market share.'"
+      )
+
+  if st.button("⬅️ Back to Lead Dashboard"):
+    st.session_state["selected_page"] = "Lead Hunter Dashboard"
+    st.rerun()
+
+# ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY ====================
+elif st.session_state["selected_page"] == "Message Library":
   st.title("💬 Quick Message Templates / Copy-Paste Library")
   st.write(
       "### 🚀 वेगवेगळ्या व्यवसायांसाठी आणि भाषांसाठी तयार केलेले कॉल्स आणि"
@@ -271,7 +353,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
       " एका क्लिकवर कॉल/पिच पाठवा!"
   )
 
-  # ==================== SIDEBAR FILTERS & KING OF THE DAY LEADERBOARD ====================
+  # ==================== SIDEBAR FILTERS & EXPORT FOLLOW-UP HISTORY ====================
   st.sidebar.header("🔍 Search Filters")
 
   nashik_district_data = {
@@ -517,12 +599,21 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     col2.metric("🔥 AI High Priority Clients", hot_count)
     col3.metric("Target Area", selected_area)
 
+    # Adding Follow-up remarks history into export DF
+    export_df = df.copy()
+    export_df["Follow-up Status"] = export_df["Business Name"].apply(
+        lambda x: st.session_state["follow_ups"].get(x, {}).get("status", "New Lead")
+    )
+    export_df["Remarks / Notes"] = export_df["Business Name"].apply(
+        lambda x: st.session_state["follow_ups"].get(x, {}).get("remark", "")
+    )
+
     st.sidebar.markdown("---")
     st.sidebar.download_button(
-        label="📥 Export Leads to Excel/CSV",
-        data=df.to_csv(index=False),
+        label="📥 Export Leads & Follow-up History (CSV)",
+        data=export_df.to_csv(index=False),
         file_name=(
-            f"THE_AK_MEDIA_Leads_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
+            f"THE_AK_MEDIA_Followups_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
         ),
         mime="text/csv",
     )
@@ -737,7 +828,7 @@ elif st.session_state["selected_page"] == "Audit Report View":
         "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
         "लॅपटॉपवर किंवा कॉम्प्युटरवर असताना फक्त **`Ctrl + P`** (Mac वर `Cmd +"
         " P`) दाबा. प्रिंट विंडो उघडल्यावर प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडा आणि सेव्ह करा[cite: 3, 4, 6]!"
+        " निवडा आणि सेव्ह करा!"
     )
 
 # ==================== FORMAL FOOTER ====================
