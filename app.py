@@ -34,12 +34,17 @@ if "role" not in st.session_state:
 if "display_name" not in st.session_state:
   st.session_state["display_name"] = ""
 
+# Team Activity & Leaderboard Database (As per your custom team)
 if "team_activity" not in st.session_state:
   st.session_state["team_activity"] = {
-      "MR.AK (Admin)": {"leads": 0, "pitches": 0},
-      "Hari Shinde": {"leads": 0, "pitches": 0},
-      "Somnath Pardhi": {"leads": 0, "pitches": 0},
+      "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
+      "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
+      "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
   }
+
+# Follow-up database storage
+if "follow_ups" not in st.session_state:
+  st.session_state["follow_ups"] = {}
 
 if "selected_page" not in st.session_state:
   st.session_state["selected_page"] = "Lead Hunter Dashboard"
@@ -51,10 +56,18 @@ USERS_DB = {
     "ankush_ceo": {
         "pass": "akmedia2026",
         "role": "Admin",
-        "name": " MR.AK (CEO)",
+        "name": "MR.AK (Admin)",
     },
-    "HS123": {"pass": "akmedia123", "role": "Sales Representative", "name": "Hari Shinde"},
-    "SP123": {"pass": "akmedia123", "role": "Sales Representative", "name": "Somnath Pardhi"},
+    "HS123": {
+        "pass": "akmedia123",
+        "role": "Sales Representative",
+        "name": "Hari Shinde",
+    },
+    "SP123": {
+        "pass": "akmedia123",
+        "role": "Sales Representative",
+        "name": "Somnath Pardhi",
+    },
 }
 
 if not st.session_state["logged_in"]:
@@ -116,25 +129,77 @@ if top_c3.button("🚪 Logout"):
   st.rerun()
 
 # Navigation Menu Bar inside App
-nav_col1, nav_col2 = st.columns(2)
+nav_col1, nav_col2, nav_col3 = st.columns(3)
 with nav_col1:
   if st.button("🎯 Lead Hunter Dashboard"):
     st.session_state["selected_page"] = "Lead Hunter Dashboard"
 with nav_col2:
   if st.button("📑 Professional Print-Ready Audit Report View"):
     st.session_state["selected_page"] = "Audit Report View"
+with nav_col3:
+  if st.button("💬 Quick Message Library"):
+    st.session_state["selected_page"] = "Message Library"
 
 st.markdown("---")
 
+# ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY ====================
+if st.session_state["selected_page"] == "Message Library":
+  st.title("💬 Quick Message Templates / Copy-Paste Library")
+  st.write(
+      "### 🚀 वेगवेगळ्या व्यवसायांसाठी तयार केलेले कॉल्स आणि व्हॉट्सॲप पिचेस"
+      " (एका क्लिकवर कॉपी करा)"
+  )
+
+  tab1, tab2, tab3 = st.tabs(["☕ Cafes & Restaurants", "🏋️ Gyms & Fitness", "🛍️ Retail & Clothing"])
+
+  with tab1:
+    st.subheader("Cafe / Restaurant Pitch Template")
+    cafe_template = (
+        "नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही"
+        " तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन"
+        " पोस्ट किंवा रील्स अपडेट झालेली नाहीत.\n\nआजकाल तरुण वर्ग आणि"
+        " कस्टमर्स ऑनलाइन सर्च करूनच कॅफे निवडतात. सोशल मीडिया इन-ॲक्टिव्ह"
+        " राहिल्याने नवीन कस्टमर्स प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक"
+        " जिल्ह्यातील कॅफेसाठी प्रोफेशनल रील्स, ग्राफिक डिझाईन आणि सोशल मीडिया"
+        " मॅनेजमेंट हँडल करतो. तुमच्या पेजचा फ्री ऑडिट रिपोर्ट हवा असल्यास"
+        " नक्की सांगा!"
+    )
+    st.code(cafe_template, language="text")
+
+  with tab2:
+    st.subheader("Gym / Fitness Club Pitch Template")
+    gym_template = (
+        "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस"
+        " लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत"
+        " असतात. तुमच्या जिमचे पेज सध्या इन-ॲक्टिव्ह दिसतेय.\n\nआम्ही जिमचे"
+        " ब्राँडिंग, एनर्जेटिक रील्स आणि लोकल लीड जनरेशन कॅम्पेन हँडल करतो."
+        " ज्यामुळे नवीन मेंबरशिप वाढण्यास मदत होईल. मोफत सल्ला हवा का?"
+    )
+    st.code(gym_template, language="text")
+
+  with tab3:
+    st.subheader("Retail / Clothing Store Pitch Template")
+    retail_template = (
+        "नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या"
+        " दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल"
+        " ऑफर्स आणि नवीन स्टॉकचे प्रमोशन सोशल मीडियावर असणे खूप गरजेचे आहे.\n\nआमच्या"
+        " डिजिटल सर्व्हिसेसबद्दल माहिती हवी असल्यास नक्की कळवा!"
+    )
+    st.code(retail_template, language="text")
+
+  if st.button("⬅️ Back to Lead Dashboard"):
+    st.session_state["selected_page"] = "Lead Hunter Dashboard"
+    st.rerun()
+
 # ==================== PAGE 1: LEAD HUNTER DASHBOARD ====================
-if st.session_state["selected_page"] == "Lead Hunter Dashboard":
+elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   st.title("🎯 Hot Client Hunter & AI Lead System (Nashik District)")
   st.write(
       "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा, AI स्कोर तपासा आणि"
-      " एका क्लिकवर कॉल/पच पाठवा!"
+      " एका क्लिकवर कॉल/पिच पाठवा!"
   )
 
-  # ==================== SIDEBAR FILTERS & TEAM TRACKER ====================
+  # ==================== SIDEBAR FILTERS & KING OF THE DAY LEADERBOARD ====================
   st.sidebar.header("🔍 Search Filters")
 
   nashik_district_data = {
@@ -239,26 +304,42 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
       ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
   )
 
-  # ==================== ADMIN MASTER TRACKER VS MEMBER TRACKER ====================
+  # ==================== LEADERBOARD & STREAK TRACKER ====================
   st.sidebar.markdown("---")
+  st.sidebar.subheader("👑 King of the Day / Streak Tracker")
+
+  # Find King of the day based on max pitches + leads
+  sorted_team = sorted(
+      st.session_state["team_activity"].items(),
+      key=lambda x: x[1]["pitches"] + x[1]["leads"],
+      reverse=True,
+  )
+  if sorted_team:
+    king_name, king_stats = sorted_team[0]
+    st.sidebar.success(
+        f"🏆 **King of the Day:** {king_name}\n(Score:"
+        f" {king_stats['pitches'] + king_stats['leads']})"
+    )
+
   if st.session_state["role"] == "Admin":
-    st.sidebar.subheader("👑 CEO Master Team Tracker")
-    st.sidebar.write("सर्व टीम मेंबर्सचे लाईव्ह काम इथे दिसेल:")
+    st.sidebar.write("---")
+    st.sidebar.write("👑 **CEO Master Team Tracker:**")
     for member, stats in st.session_state["team_activity"].items():
       st.sidebar.markdown(
-          f"**{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
-          f" `{stats['pitches']}`",
+          f"🔹 **{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
+          f" `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days`",
           unsafe_allow_html=True,
       )
   else:
-    st.sidebar.subheader("📊 My Activity Tracker")
     current_user_name = st.session_state["display_name"]
     if current_user_name not in st.session_state["team_activity"]:
       st.session_state["team_activity"][current_user_name] = {
           "leads": 0,
           "pitches": 0,
+          "streak": 1,
       }
     my_stats = st.session_state["team_activity"][current_user_name]
+    st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
     st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
     st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
 
@@ -347,7 +428,11 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
       curr_user = st.session_state["display_name"]
       if curr_user not in st.session_state["team_activity"]:
-        st.session_state["team_activity"][curr_user] = {"leads": 0, "pitches": 0}
+        st.session_state["team_activity"][curr_user] = {
+            "leads": 0,
+            "pitches": 0,
+            "streak": 1,
+        }
       st.session_state["team_activity"][curr_user]["leads"] += len(df)
 
   if "leads_data" in st.session_state and not st.session_state[
@@ -430,6 +515,37 @@ if st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 </div>
                 """
         c5.markdown(action_html, unsafe_allow_html=True)
+
+        # Follow-up Remarks & Status Feature
+        bname = row["Business Name"]
+        if bname not in st.session_state["follow_ups"]:
+          st.session_state["follow_ups"][bname] = {
+              "status": "New Lead",
+              "remark": "",
+          }
+
+        with st.expander(f"📝 Follow-up Status & Remarks ({bname})"):
+          f_status = st.selectbox(
+              "Select Status",
+              [
+                  "New Lead",
+                  "Called - Interested",
+                  "Meeting Scheduled",
+                  "Audit Report Sent",
+                  "Converted",
+                  "Not Responding",
+              ],
+              key=f"status_{idx}",
+          )
+          f_remark = st.text_input(
+              "Add Remark / Notes", key=f"remark_{idx}"
+          )
+          if st.button("💾 Save Status", key=f"save_{idx}"):
+            st.session_state["follow_ups"][bname] = {
+                "status": f_status,
+                "remark": f_remark,
+            }
+            st.success("✅ Saved successfully!")
 
         if c5.button(
             f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"
