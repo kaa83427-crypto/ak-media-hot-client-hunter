@@ -9,12 +9,17 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-# Custom CSS for Professional Look & Print Styling
+# Custom CSS for Professional Look, Print Styling & Black/White Inactive Emoji
 st.markdown(
     """
     <style>
     .main { background-color: #0e1117; }
     .stButton>button { background-color: #D4AF37; color: black; font-weight: bold; border-radius: 8px; width: 100%; }
+    
+    .inactive-streak {
+        filter: grayscale(100%);
+        opacity: 0.4;
+    }
     
     @media print {
         body { background-color: white !important; color: black !important; }
@@ -29,7 +34,6 @@ st.markdown(
 def init_db():
   conn = sqlite3.connect("ak_media.db", check_same_thread=False)
   cursor = conn.cursor()
-  # Table for Follow-ups and Remarks
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
@@ -37,13 +41,14 @@ def init_db():
             remark TEXT
         )
     """)
-  # Table for Team Activity
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
             leads INTEGER,
             pitches INTEGER,
-            streak INTEGER
+            streak INTEGER,
+            last_active_date TEXT,
+            worked_today INTEGER
         )
     """)
   conn.commit()
@@ -52,15 +57,16 @@ def init_db():
 conn = init_db()
 cursor = conn.cursor()
 
-# Initialize Default Team Stats in DB if empty
+today_str = str(datetime.date.today())
+
 default_team = {
     "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
     "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
     "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
 }
 for member, stats in default_team.items():
-  cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak) VALUES (?, ?, ?, ?)",
-                 (member, stats["leads"], stats["pitches"], stats["streak"]))
+  cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+                 (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0))
 conn.commit()
 
 # ==================== INITIALIZE SESSION STATE ====================
@@ -127,6 +133,15 @@ if not st.session_state["logged_in"]:
         st.session_state["username"] = input_user
         st.session_state["role"] = USERS_DB[input_user]["role"]
         st.session_state["display_name"] = USERS_DB[input_user]["name"]
+        
+        # Reset worked_today status if new day login
+        logged_name = USERS_DB[input_user]["name"]
+        cursor.execute("SELECT last_active_date FROM team_activity WHERE member_name = ?", (logged_name,))
+        row_dt = cursor.fetchone()
+        if row_dt and row_dt[0] != today_str:
+          cursor.execute("UPDATE team_activity SET last_active_date = ?, worked_today = 0 WHERE member_name = ?", (today_str, logged_name))
+          conn.commit()
+
         st.success(
             f"✅ Welcome back, {st.session_state['display_name']}! Loading"
             " dashboard..."
@@ -307,7 +322,6 @@ if st.session_state["selected_page"] == "Quotation Generator":
           ["Yes (₹3,500)", "No"],
       )
 
-    # Calculate Total Price dynamically
     total_cost = (q_reels * 1000) + (q_posts * 500)
     if "Yes" in q_opt:
       total_cost += 2000
@@ -340,7 +354,6 @@ if st.session_state["selected_page"] == "Quotation Generator":
           "date": str(datetime.date.today()),
       }
 
-  # Display Formal Quotation if Generated
   if st.session_state["generated_quotation"] is not None:
     q = st.session_state["generated_quotation"]
     st.markdown("---")
@@ -739,12 +752,12 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   st.sidebar.markdown("---")
   st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
-  cursor.execute("SELECT member_name, leads, pitches, streak FROM team_activity")
+  cursor.execute("SELECT member_name, leads, pitches, streak, worked_today FROM team_activity")
   db_team_data = cursor.fetchall()
   
   team_scores = {}
-  for member, l_count, p_count, streak in db_team_data:
-    team_scores[member] = {"leads": l_count, "pitches": p_count, "streak": streak}
+  for member, l_count, p_count, streak, w_today in db_team_data:
+    team_scores[member] = {"leads": l_count, "pitches": p_count, "streak": streak, "worked_today": w_today}
 
   sorted_team = sorted(
       team_scores.items(),
@@ -758,24 +771,38 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         f" {king_stats['pitches'] + king_stats['leads']})"
     )
 
+  # Interactive Work Button for Logged-in Member
+  curr_user_name = st.session_state["display_name"]
+  if curr_user_name in team_scores:
+    w_status = team_scores[curr_user_name]["worked_today"]
+    if w_status == 0:
+      if st.sidebar.button("🔥 I'm doing my work today"):
+        cursor.execute("UPDATE team_activity SET worked_today = 1 WHERE member_name = ?", (curr_user_name,))
+        conn.commit()
+        st.success("✅ Attendance marked for today!")
+        st.rerun()
+
   if st.session_state["role"] == "Admin":
     st.sidebar.write("---")
     st.sidebar.write("👑 **CEO Master Team Tracker:**")
     for member, stats in team_scores.items():
+      emoji_class = "" if stats["worked_today"] == 1 else "inactive-streak"
       st.sidebar.markdown(
-          f"🔹 **{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
-          f" `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days`",
+          f"""<div class="{emoji_class}">🔥 <b>{member}</b></div>
+          🎯 Leads: `{stats['leads']}` | 💬 Pitches: `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
           unsafe_allow_html=True,
       )
   else:
-    current_user_name = st.session_state["display_name"]
-    if current_user_name not in team_scores:
-      cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak) VALUES (?, ?, ?, ?)",
-                     (current_user_name, 0, 0, 1))
+    if curr_user_name not in team_scores:
+      cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+                     (curr_user_name, 0, 0, 1, today_str, 0))
       conn.commit()
-      team_scores[current_user_name] = {"leads": 0, "pitches": 0, "streak": 1}
+      team_scores[curr_user_name] = {"leads": 0, "pitches": 0, "streak": 1, "worked_today": 0}
     
-    my_stats = team_scores[current_user_name]
+    my_stats = team_scores[curr_user_name]
+    emoji_class = "" if my_stats["worked_today"] == 1 else "inactive-streak"
+    
+    st.sidebar.markdown(f"""<div class="{emoji_class}" style="font-size: 24px;">🔥 Daily Streak</div>""", unsafe_allow_html=True)
     st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
     st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
     st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
@@ -883,7 +910,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     col2.metric("🔥 AI High Priority Clients", hot_count)
     col3.metric("Target Area", selected_area)
 
-    # Fetch Follow-ups from SQLite for Export
     cursor.execute("SELECT business_name, status, remark FROM followups")
     db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
 
@@ -938,7 +964,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
               " बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से"
               " कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
               f" ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स"
-              " छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
+              " छूट सकते हैं.\n\हम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
               " मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट"
               " भेज दें?"
           )
@@ -966,7 +992,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         c5.markdown(action_html, unsafe_allow_html=True)
 
         bname = row["Business Name"]
-        # Fetch current follow-up from DB
         cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
         f_data = cursor.fetchone()
         current_f_status = f_data[0] if f_data else "New Lead"
