@@ -1,4 +1,5 @@
 import datetime
+import sqlite3
 import urllib.parse
 import pandas as pd
 import requests
@@ -24,6 +25,44 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ==================== LOCAL SQLITE DATABASE SETUP ====================
+def init_db():
+  conn = sqlite3.connect("ak_media.db", check_same_thread=False)
+  cursor = conn.cursor()
+  # Table for Follow-ups and Remarks
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS followups (
+            business_name TEXT PRIMARY KEY,
+            status TEXT,
+            remark TEXT
+        )
+    """)
+  # Table for Team Activity
+  cursor.execute("""
+        CREATE TABLE IF NOT EXISTS team_activity (
+            member_name TEXT PRIMARY KEY,
+            leads INTEGER,
+            pitches INTEGER,
+            streak INTEGER
+        )
+    """)
+  conn.commit()
+  return conn
+
+conn = init_db()
+cursor = conn.cursor()
+
+# Initialize Default Team Stats in DB if empty
+default_team = {
+    "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
+    "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
+    "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
+}
+for member, stats in default_team.items():
+  cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak) VALUES (?, ?, ?, ?)",
+                 (member, stats["leads"], stats["pitches"], stats["streak"]))
+conn.commit()
+
 # ==================== INITIALIZE SESSION STATE ====================
 if "logged_in" not in st.session_state:
   st.session_state["logged_in"] = False
@@ -33,17 +72,6 @@ if "role" not in st.session_state:
   st.session_state["role"] = ""
 if "display_name" not in st.session_state:
   st.session_state["display_name"] = ""
-
-# Team Activity Database
-if "team_activity" not in st.session_state:
-  st.session_state["team_activity"] = {
-      "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
-      "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
-      "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
-  }
-
-if "follow_ups" not in st.session_state:
-  st.session_state["follow_ups"] = {}
 
 if "selected_page" not in st.session_state:
   st.session_state["selected_page"] = "Lead Hunter Dashboard"
@@ -707,12 +735,19 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
       ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
   )
 
-  # ==================== LEADERBOARD & STREAK TRACKER ====================
+  # ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
   st.sidebar.markdown("---")
   st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
+  cursor.execute("SELECT member_name, leads, pitches, streak FROM team_activity")
+  db_team_data = cursor.fetchall()
+  
+  team_scores = {}
+  for member, l_count, p_count, streak in db_team_data:
+    team_scores[member] = {"leads": l_count, "pitches": p_count, "streak": streak}
+
   sorted_team = sorted(
-      st.session_state["team_activity"].items(),
+      team_scores.items(),
       key=lambda x: x[1]["pitches"] + x[1]["leads"],
       reverse=True,
   )
@@ -726,7 +761,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   if st.session_state["role"] == "Admin":
     st.sidebar.write("---")
     st.sidebar.write("👑 **CEO Master Team Tracker:**")
-    for member, stats in st.session_state["team_activity"].items():
+    for member, stats in team_scores.items():
       st.sidebar.markdown(
           f"🔹 **{member}**<br>🎯 Leads: `{stats['leads']}` | 💬 Pitches:"
           f" `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days`",
@@ -734,13 +769,13 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
       )
   else:
     current_user_name = st.session_state["display_name"]
-    if current_user_name not in st.session_state["team_activity"]:
-      st.session_state["team_activity"][current_user_name] = {
-          "leads": 0,
-          "pitches": 0,
-          "streak": 1,
-      }
-    my_stats = st.session_state["team_activity"][current_user_name]
+    if current_user_name not in team_scores:
+      cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak) VALUES (?, ?, ?, ?)",
+                     (current_user_name, 0, 0, 1))
+      conn.commit()
+      team_scores[current_user_name] = {"leads": 0, "pitches": 0, "streak": 1}
+    
+    my_stats = team_scores[current_user_name]
     st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
     st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
     st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
@@ -829,13 +864,13 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
       st.session_state["leads_data"] = df
 
       curr_user = st.session_state["display_name"]
-      if curr_user not in st.session_state["team_activity"]:
-        st.session_state["team_activity"][curr_user] = {
-            "leads": 0,
-            "pitches": 0,
-            "streak": 1,
-        }
-      st.session_state["team_activity"][curr_user]["leads"] += len(df)
+      cursor.execute("SELECT leads FROM team_activity WHERE member_name = ?", (curr_user,))
+      res = cursor.fetchone()
+      current_leads_db = res[0] if res else 0
+      new_leads_count = current_leads_db + len(df)
+      
+      cursor.execute("UPDATE team_activity SET leads = ? WHERE member_name = ?", (new_leads_count, curr_user))
+      conn.commit()
 
   if "leads_data" in st.session_state and not st.session_state[
       "leads_data"
@@ -848,12 +883,16 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     col2.metric("🔥 AI High Priority Clients", hot_count)
     col3.metric("Target Area", selected_area)
 
+    # Fetch Follow-ups from SQLite for Export
+    cursor.execute("SELECT business_name, status, remark FROM followups")
+    db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
+
     export_df = df.copy()
     export_df["Follow-up Status"] = export_df["Business Name"].apply(
-        lambda x: st.session_state["follow_ups"].get(x, {}).get("status", "New Lead")
+        lambda x: db_followups.get(x, {}).get("status", "New Lead")
     )
     export_df["Remarks / Notes"] = export_df["Business Name"].apply(
-        lambda x: st.session_state["follow_ups"].get(x, {}).get("remark", "")
+        lambda x: db_followups.get(x, {}).get("remark", "")
     )
 
     st.sidebar.markdown("---")
@@ -927,34 +966,41 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         c5.markdown(action_html, unsafe_allow_html=True)
 
         bname = row["Business Name"]
-        if bname not in st.session_state["follow_ups"]:
-          st.session_state["follow_ups"][bname] = {
-              "status": "New Lead",
-              "remark": "",
-          }
+        # Fetch current follow-up from DB
+        cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
+        f_data = cursor.fetchone()
+        current_f_status = f_data[0] if f_data else "New Lead"
+        current_f_remark = f_data[1] if f_data else ""
 
         with st.expander(f"📝 Follow-up Status & Remarks ({bname})"):
+          status_options = [
+              "New Lead",
+              "Called - Interested",
+              "Meeting Scheduled",
+              "Audit Report Sent",
+              "Converted",
+              "Not Responding",
+          ]
+          default_idx = status_options.index(current_f_status) if current_f_status in status_options else 0
+
           f_status = st.selectbox(
               "Select Status",
-              [
-                  "New Lead",
-                  "Called - Interested",
-                  "Meeting Scheduled",
-                  "Audit Report Sent",
-                  "Converted",
-                  "Not Responding",
-              ],
+              status_options,
+              index=default_idx,
               key=f"status_{idx}",
           )
           f_remark = st.text_input(
-              "Add Remark / Notes", key=f"remark_{idx}"
+              "Add Remark / Notes", value=current_f_remark, key=f"remark_{idx}"
           )
           if st.button("💾 Save Status", key=f"save_{idx}"):
-            st.session_state["follow_ups"][bname] = {
-                "status": f_status,
-                "remark": f_remark,
-            }
-            st.success("✅ Saved successfully!")
+            cursor.execute("""
+                INSERT INTO followups (business_name, status, remark) 
+                VALUES (?, ?, ?) 
+                ON CONFLICT(business_name) 
+                DO UPDATE SET status = ?, remark = ?
+            """, (bname, f_status, f_remark, f_status, f_remark))
+            conn.commit()
+            st.success("✅ Saved to database permanently!")
 
         if c5.button(
             f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"
@@ -962,8 +1008,12 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
           st.session_state["active_audit_lead"] = row.to_dict()
           st.session_state["selected_page"] = "Audit Report View"
           curr_user = st.session_state["display_name"]
-          if curr_user in st.session_state["team_activity"]:
-            st.session_state["team_activity"][curr_user]["pitches"] += 1
+          
+          cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+          p_res = cursor.fetchone()
+          current_p_db = p_res[0] if p_res else 0
+          cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (current_p_db + 1, curr_user))
+          conn.commit()
           st.rerun()
 
         st.markdown(
