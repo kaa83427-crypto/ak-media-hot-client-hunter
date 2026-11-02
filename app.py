@@ -34,7 +34,7 @@ if "role" not in st.session_state:
 if "display_name" not in st.session_state:
   st.session_state["display_name"] = ""
 
-# Team Activity & Leaderboard Database
+# Team Activity Database
 if "team_activity" not in st.session_state:
   st.session_state["team_activity"] = {
       "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
@@ -42,7 +42,6 @@ if "team_activity" not in st.session_state:
       "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
   }
 
-# Follow-up database storage
 if "follow_ups" not in st.session_state:
   st.session_state["follow_ups"] = {}
 
@@ -50,6 +49,8 @@ if "selected_page" not in st.session_state:
   st.session_state["selected_page"] = "Lead Hunter Dashboard"
 if "active_audit_lead" not in st.session_state:
   st.session_state["active_audit_lead"] = None
+if "generated_quotation" not in st.session_state:
+  st.session_state["generated_quotation"] = None
 
 # ==================== LOGIN SYSTEM ====================
 USERS_DB = {
@@ -128,25 +129,268 @@ if top_c3.button("🚪 Logout"):
   st.session_state["logged_in"] = False
   st.rerun()
 
-# Navigation Menu Bar inside App
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns(4)
-with nav_col1:
-  if st.button("🎯 Lead Hunter Dashboard"):
+# Navigation Menu Bar
+n1, n2, n3, n4, n5 = st.columns(5)
+with n1:
+  if st.button("🎯 Lead Hunter"):
     st.session_state["selected_page"] = "Lead Hunter Dashboard"
-with nav_col2:
-  if st.button("📑 Audit Report View"):
+with n2:
+  if st.button("📑 Audit Report"):
     st.session_state["selected_page"] = "Audit Report View"
-with nav_col3:
+with n3:
+  if st.button("💰 Service Plans & Quote"):
+    st.session_state["selected_page"] = "Quotation Generator"
+with n4:
   if st.button("💬 Message Library"):
     st.session_state["selected_page"] = "Message Library"
-with nav_col4:
-  if st.button("💡 Objection Cheat-Sheet"):
+with n5:
+  if st.button("💡 Objection Sheet"):
     st.session_state["selected_page"] = "Objection Cheat Sheet"
 
 st.markdown("---")
 
+# ==================== PAGE 5: SERVICE PLANS & QUOTATION GENERATOR ====================
+if st.session_state["selected_page"] == "Quotation Generator":
+  st.title("💰 THE AK MEDIA - Service Plans & Instant Quotation Generator")
+  st.write(
+      "### 📋 ५ स्टँडर्ड प्लॅन्स आणि १ कस्टम कोटेशन कॅल्क्युलेटर"
+  )
+
+  tab1, tab2 = st.tabs(
+      ["⭐ Standard 5 Plans", "⚙️ Custom Quotation Generator"]
+  )
+
+  with tab1:
+    st.subheader("📌 THE AK MEDIA - ५ मुख्य सर्व्हिस प्लॅन्स")
+    p1, p2, p3 = st.columns(3)
+    with p1:
+      st.markdown("""
+            <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
+                <h3 style="color: #D4AF37;">1. Starter Pack</h3>
+                <h4 style="color: white;">₹5,000 / month</h4>
+                <ul style="color: #ccc; font-size: 13px;">
+                    <li>8 Graphics Posts</li>
+                    <li>2 HD Reels</li>
+                    <li>Page Setup & Optimization</li>
+                    <li>Basic Hashtag Strategy</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+    with p2:
+      st.markdown("""
+            <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
+                <h3 style="color: #D4AF37;">2. Growth Pack</h3>
+                <h4 style="color: white;">₹10,000 / month</h4>
+                <ul style="color: #ccc; font-size: 13px;">
+                    <li>12 Graphics Posts</li>
+                    <li>4 HD Reels</li>
+                    <li>Full Page Optimization</li>
+                    <li>Content Strategy & Captions</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+    with p3:
+      st.markdown("""
+            <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
+                <h3 style="color: #D4AF37;">3. Premium Branding</h3>
+                <h4 style="color: white;">₹18,000 / month</h4>
+                <ul style="color: #ccc; font-size: 13px;">
+                    <li>15 Graphics Posts</li>
+                    <li>8 Trending Reels</li>
+                    <li>Page Optimization + Highlights</li>
+                    <li>Custom Content Strategy</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    p4, p5 = st.columns(2)
+    with p4:
+      st.markdown("""
+            <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
+                <h3 style="color: #D4AF37;">4. Business Scale Pack</h3>
+                <h4 style="color: white;">₹25,000 / month</h4>
+                <ul style="color: #ccc; font-size: 13px;">
+                    <li>20 Graphics Posts + 10 Reels</li>
+                    <li>Full Page & Bio Optimization</li>
+                    <li>Basic Business Website (5 Pages)</li>
+                    <li>Targeted Ad Campaign Setup</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+    with p5:
+      st.markdown("""
+            <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
+                <h3 style="color: #D4AF37;">5. Ultimate 360° Dominance</h3>
+                <h4 style="color: white;">₹40,000 / month</h4>
+                <ul style="color: #ccc; font-size: 13px;">
+                    <li>Daily Posts + 15 High-Quality Reels</li>
+                    <li>SEO Friendly Dynamic Website</li>
+                    <li>Complete SEO & Local Search Setup</li>
+                    <li>Custom Growth & Ad Strategy</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+  with tab2:
+    st.subheader("🧮 Custom Plan & Price Calculator")
+    st.write(
+        "क्लायंटच्या आवश्यकतेनुसार खालील पर्याय निवडा, सिस्टीम आपोआप कोटेशन तयार"
+        " करेल:"
+    )
+
+    col_q1, col_q2 = st.columns(2)
+    with col_q1:
+      q_client_name = st.text_input(
+          "🏢 Client / Business Name", "Shree Samarth Traders"
+      )
+      q_reels = st.number_input(
+          "🎬 Monthly Reels Count (₹800/Reel)",
+          min_value=0,
+          max_value=60,
+          value=4,
+      )
+      q_posts = st.number_input(
+          "🖼️ Monthly Posts Count (₹400/Post)",
+          min_value=0,
+          max_value=60,
+          value=10,
+      )
+
+    with col_q2:
+      q_opt = st.selectbox(
+          "✨ Social Media Page Optimization Required?",
+          ["Yes (₹1,500)", "No"],
+      )
+      q_web = st.selectbox(
+          "🌐 Website Building Required?",
+          ["No", "Basic Business Website (₹8,000)", "Advanced Website (₹15,000)"],
+      )
+      q_seo = st.selectbox(
+          "🚀 Website SEO Required?", ["No", "Basic Local SEO (₹4,000)", "Full Advanced SEO (₹8,000)"]
+      )
+      q_strat = st.selectbox(
+          "🎯 Custom Social Media Strategy Required?",
+          ["Yes (₹2,000)", "No"],
+      )
+
+    # Calculate Total Price
+    total_cost = (q_reels * 800) + (q_posts * 400)
+    if "Yes" in q_opt:
+      total_cost += 1500
+    if "Basic Business Website" in q_web:
+      total_cost += 8000
+    elif "Advanced Website" in q_web:
+      total_cost += 15000
+
+    if "Basic Local SEO" in q_seo:
+      total_cost += 4000
+    elif "Full Advanced SEO" in q_seo:
+      total_cost += 8000
+
+    if "Yes" in q_strat:
+      total_cost += 2000
+
+    st.markdown("---")
+    st.subheader(f"💵 Total Estimated Quotation: ₹{total_cost:,}")
+
+    if st.button("📄 Generate Print-Ready Formal Quotation"):
+      st.session_state["generated_quotation"] = {
+          "client": q_client_name,
+          "reels": q_reels,
+          "posts": q_posts,
+          "opt": q_opt,
+          "web": q_web,
+          "seo": q_seo,
+          "strat": q_strat,
+          "total": total_cost,
+          "date": str(datetime.date.today()),
+      }
+
+  # Display Formal Quotation if Generated
+  if st.session_state["generated_quotation"] is not None:
+    q = st.session_state["generated_quotation"]
+    st.markdown("---")
+
+    quotation_html = f"""
+        <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
+            <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
+                <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">OFFICIAL SERVICES & BRANDING QUOTATION</p>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
+                <div>
+                    <b>Quotation For:</b> {q['client']}<br>
+                    <b>Prepared By:</b> THE AK MEDIA Sales Team<br>
+                    <b>Location:</b> Nashik District
+                </div>
+                <div style="text-align: right;">
+                    <b>Date:</b> {q['date']}<br>
+                    <b>Quote Ref:</b> AKM-QTN-{datetime.datetime.now().strftime('%M%S')}
+                </div>
+            </div>
+
+            <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Scope of Customized Deliverables</h3>
+            <table style="width: 100%; font-size: 14px; margin-bottom: 20px; border-collapse: collapse;">
+                <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Service Module</th>
+                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Deliverable Details</th>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Monthly Reels</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['reels']} High-Quality Trending Video Reels</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Monthly Posts</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['posts']} Graphic Banner Posts</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Page Optimization</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['opt']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Website Development</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['web']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>SEO Setup</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['seo']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Custom Growth Strategy</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['strat']}</td>
+                </tr>
+            </table>
+
+            <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #D4AF37; margin-bottom: 30px;">
+                <h3 style="margin: 0; color: #111;">Total Customized Package Value: ₹{q['total']:,} /-</h3>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #555;">* Applicable taxes & ad spend budgets paid directly to platforms extra.</p>
+            </div>
+
+            <div style="margin-top: 40px; border-top: 2px dashed #ccc; padding-top: 20px; display: flex; justify-content: space-between; font-size: 13px; color: #555;">
+                <div>
+                    <b>Office Address:</b><br>
+                    The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic,<br>
+                    Dhawkhar Nagar, Chandwad, Nashik - 423101
+                </div>
+                <div style="text-align: right;">
+                    <b>Contact & Support:</b><br>
+                    Phone: +91 9172082052<br>
+                    Email: the.ak.media56@gmail.com
+                </div>
+            </div>
+        </div>
+        """
+    st.markdown(quotation_html, unsafe_allow_html=True)
+    st.info(
+        "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
+        "लॅपटॉपवर फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
+        " निवडून क्लायंटला व्हॉट्सॲपवर पाठवा!"
+    )
+
 # ==================== PAGE 4: MULTI-LANGUAGE OBJECTION HANDLING CHEAT SHEET ====================
-if st.session_state["selected_page"] == "Objection Cheat Sheet":
+elif st.session_state["selected_page"] == "Objection Cheat Sheet":
   st.title("💡 Objection Handling Cheat-Sheet")
   st.write(
       "### 🛡️ क्लायंटच्या प्रश्नांना/कारणांना (Objections) उडवण्यासाठी"
@@ -243,7 +487,7 @@ elif st.session_state["selected_page"] == "Message Library":
 
   if "Marathi" in lib_lang:
     with tab1:
-      st.subheader("☕ कॅफे / रेस्टॉरंट - मराठी पिच")
+      st.subheader("☕ कॅफे / रेस्टॉरंट - मराठी pitch")
       st.code(
           "नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही"
           " तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन"
@@ -256,7 +500,7 @@ elif st.session_state["selected_page"] == "Message Library":
           language="text",
       )
     with tab2:
-      st.subheader("🏋️ जिम / फिटनेस क्लब - मराठी पिच")
+      st.subheader("🏋️ जिम / फिटनेस क्लब - मराठी pitch")
       st.code(
           "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस"
           " लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत"
@@ -266,7 +510,7 @@ elif st.session_state["selected_page"] == "Message Library":
           language="text",
       )
     with tab3:
-      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोअर - मराठी पिच")
+      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोअर - मराठी pitch")
       st.code(
           "नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या"
           " दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल"
@@ -599,7 +843,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     col2.metric("🔥 AI High Priority Clients", hot_count)
     col3.metric("Target Area", selected_area)
 
-    # Adding Follow-up remarks history into export DF
     export_df = df.copy()
     export_df["Follow-up Status"] = export_df["Business Name"].apply(
         lambda x: st.session_state["follow_ups"].get(x, {}).get("status", "New Lead")
@@ -678,7 +921,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 """
         c5.markdown(action_html, unsafe_allow_html=True)
 
-        # Follow-up Remarks & Status Feature
         bname = row["Business Name"]
         if bname not in st.session_state["follow_ups"]:
           st.session_state["follow_ups"][bname] = {
@@ -826,9 +1068,8 @@ elif st.session_state["selected_page"] == "Audit Report View":
     st.markdown("<br>", unsafe_allow_html=True)
     st.info(
         "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
-        "लॅपटॉपवर किंवा कॉम्प्युटरवर असताना फक्त **`Ctrl + P`** (Mac वर `Cmd +"
-        " P`) दाबा. प्रिंट विंडो उघडल्यावर प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडा आणि सेव्ह करा!"
+        "लॅपटॉपवर फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
+        " निवडा!"
     )
 
 # ==================== FORMAL FOOTER ====================
