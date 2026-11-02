@@ -153,25 +153,26 @@ st.markdown("---")
 if st.session_state["selected_page"] == "Quotation Generator":
   st.title("💰 THE AK MEDIA - Service Plans & Instant Quotation Generator")
   st.write(
-      "### 📋 ५ स्टँडर्ड प्लॅन्स आणि १ कस्टम कोटेशन कॅल्क्युलेटर"
+      "### 📋 पीपीटीनुसार ५ मुख्य प्लॅन्स आणि कस्टमाइझ्ड कोटेशन कॅल्क्युलेटर"
   )
 
   tab1, tab2 = st.tabs(
-      ["⭐ Standard 5 Plans", "⚙️ Custom Quotation Generator"]
+      ["⭐ Official 5 Service Plans", "⚙️ Custom Quotation Generator"]
   )
 
   with tab1:
-    st.subheader("📌 THE AK MEDIA - ५ मुख्य सर्व्हिस प्लॅन्स")
+    st.subheader("📌 THE AK MEDIA - अधिकृत ५ बिझनेस प्लॅन्स")
     p1, p2, p3 = st.columns(3)
     with p1:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">1. Starter Pack</h3>
-                <h4 style="color: white;">₹5,000 / month</h4>
+                <h3 style="color: #D4AF37;">1. Basic Star[cite: 6]</h3>
+                <h4 style="color: white;">₹8,000 - ₹10,000 / mo[cite: 6]</h4>
+                <p style="color: #aaa; font-size: 12px;">Essential social media presence for growing local businesses.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>8 Graphics Posts</li>
-                    <li>2 HD Reels</li>
-                    <li>Page Setup & Optimization</li>
+                    <li>8 Monthly Posts[cite: 6]</li>
+                    <li>2 Basic Reels[cite: 6]</li>
+                    <li>Page Optimization[cite: 6]</li>
                     <li>Basic Hashtag Strategy</li>
                 </ul>
             </div>
@@ -179,12 +180,13 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p2:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">2. Growth Pack</h3>
-                <h4 style="color: white;">₹10,000 / month</h4>
+                <h3 style="color: #D4AF37;">2. Business Growth[cite: 6]</h3>
+                <h4 style="color: white;">₹15,000 - ₹18,000 / mo[cite: 6]</h4>
+                <p style="color: #aaa; font-size: 12px;">Accelerate your customer engagement with consistent content.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>12 Graphics Posts</li>
-                    <li>4 HD Reels</li>
-                    <li>Full Page Optimization</li>
+                    <li>12 Monthly Posts[cite: 6]</li>
+                    <li>6 Managed Reels[cite: 6]</li>
+                    <li>FB/IG Ads Setup[cite: 6]</li>
                     <li>Content Strategy & Captions</li>
                 </ul>
             </div>
@@ -192,13 +194,14 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p3:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">3. Premium Branding</h3>
-                <h4 style="color: white;">₹18,000 / month</h4>
+                <h3 style="color: #D4AF37;">3. Brand Accelerator[cite: 7]</h3>
+                <h4 style="color: white;">₹25,000 - ₹30,000 / mo[cite: 7]</h4>
+                <p style="color: #aaa; font-size: 12px;">Advanced growth strategy for established local brands.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>15 Graphics Posts</li>
-                    <li>8 Trending Reels</li>
-                    <li>Page Optimization + Highlights</li>
-                    <li>Custom Content Strategy</li>
+                    <li>20 Monthly High-Impact Posts[cite: 7]</li>
+                    <li>10 Cinematic Reels (Team Shoot)[cite: 7]</li>
+                    <li>Performance Ad Management[cite: 7]</li>
+                    <li>Custom Growth Roadmap</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -208,35 +211,36 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p4:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">4. Business Scale Pack</h3>
-                <h4 style="color: white;">₹25,000 / month</h4>
+                <h3 style="color: #D4AF37;">4. Advance Digital[cite: 7]</h3>
+                <h4 style="color: white;">₹45,000 - ₹50,000 / mo[cite: 7]</h4>
+                <p style="color: #aaa; font-size: 12px;">Daily brand presence for serious market expansion.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>20 Graphics Posts + 10 Reels</li>
-                    <li>Full Page & Bio Optimization</li>
-                    <li>Basic Business Website (5 Pages)</li>
-                    <li>Targeted Ad Campaign Setup</li>
+                    <li>Daily Brand Presence (30 Posts)[cite: 7]</li>
+                    <li>15 Pro-Level Reels[cite: 7]</li>
+                    <li>Google My Business (SEO)[cite: 7]</li>
+                    <li>Omnichannel Ads Setup</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
     with p5:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">5. Ultimate 360° Dominance</h3>
-                <h4 style="color: white;">₹40,000 / month</h4>
+                <h3 style="color: #D4AF37;">5. The VIP King Pack[cite: 8]</h3>
+                <h4 style="color: white;">₹1.5 Lakh+ / mo[cite: 8]</h4>
+                <p style="color: #aaa; font-size: 12px;">Designed for Nashik's top jewelers, builders, and corporate giants[cite: 8].</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>Daily Posts + 15 High-Quality Reels</li>
-                    <li>SEO Friendly Dynamic Website</li>
-                    <li>Complete SEO & Local Search Setup</li>
-                    <li>Custom Growth & Ad Strategy</li>
+                    <li>Full E-Commerce / Dynamic Website[cite: 9, 11]</li>
+                    <li>20+ Pro Cinematic Reels with Storytelling[cite: 9]</li>
+                    <li>Direct Influencer Marketing Tie-ups[cite: 9]</li>
+                    <li>Dedicated Manager & 24/7 Priority Support[cite: 9]</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
 
   with tab2:
-    st.subheader("🧮 Custom Plan & Price Calculator")
+    st.subheader("⚙️ Custom Quotation Generator (क्लायंटसाठी कस्टमाइझ्ड प्लॅन)")
     st.write(
-        "क्लायंटच्या आवश्यकतेनुसार खालील पर्याय निवडा, सिस्टीम आपोआप कोटेशन तयार"
-        " करेल:"
+        "क्लायंटच्या गरजेनुसार खालील घटक निवडून तात्काळ अचूक कोटेशन तयार करा:"
     )
 
     col_q1, col_q2 = st.columns(2)
@@ -245,43 +249,44 @@ if st.session_state["selected_page"] == "Quotation Generator":
           "🏢 Client / Business Name", "Shree Samarth Traders"
       )
       q_reels = st.number_input(
-          "🎬 Monthly Reels Count (₹800/Reel)",
+          "🎬 मंथली किती रिल्स पाहिजेत? (Monthly Reels Count)",
           min_value=0,
           max_value=60,
           value=4,
       )
       q_posts = st.number_input(
-          "🖼️ Monthly Posts Count (₹400/Post)",
+          "🖼️ मंथली किती पोस्ट्स पाहिजेत? (Monthly Posts Count)",
           min_value=0,
           max_value=60,
           value=10,
       )
-
-    with col_q2:
       q_opt = st.selectbox(
-          "✨ Social Media Page Optimization Required?",
+          "✨ पेज ऑप्टिमायझेशन करायचे आहे का? (Page Optimization)",
           ["Yes (₹1,500)", "No"],
       )
+
+    with col_q2:
       q_web = st.selectbox(
-          "🌐 Website Building Required?",
-          ["No", "Basic Business Website (₹8,000)", "Advanced Website (₹15,000)"],
+          "🌐 वेबसाईट बनवायची आहे का? (Website Building)",
+          ["No", "Basic Business Website (₹8,000)", "Advanced E-Commerce Website (₹25,000)"],
       )
       q_seo = st.selectbox(
-          "🚀 Website SEO Required?", ["No", "Basic Local SEO (₹4,000)", "Full Advanced SEO (₹8,000)"]
+          "🚀 त्या वेबसाईटसाठी एसिओ (SEO) करायचे आहे का?",
+          ["No", "Basic Local SEO (₹4,000)", "Full Advanced SEO (₹8,000)"],
       )
       q_strat = st.selectbox(
-          "🎯 Custom Social Media Strategy Required?",
+          "🎯 कस्टम स्ट्रॅटेजी (Custom Social Media Strategy) तयार करायची आहे का?",
           ["Yes (₹2,000)", "No"],
       )
 
-    # Calculate Total Price
+    # Calculate Total Price dynamically
     total_cost = (q_reels * 800) + (q_posts * 400)
     if "Yes" in q_opt:
       total_cost += 1500
     if "Basic Business Website" in q_web:
       total_cost += 8000
-    elif "Advanced Website" in q_web:
-      total_cost += 15000
+    elif "Advanced E-Commerce Website" in q_web:
+      total_cost += 25000
 
     if "Basic Local SEO" in q_seo:
       total_cost += 4000
@@ -292,9 +297,9 @@ if st.session_state["selected_page"] == "Quotation Generator":
       total_cost += 2000
 
     st.markdown("---")
-    st.subheader(f"💵 Total Estimated Quotation: ₹{total_cost:,}")
+    st.subheader(f"💵 Total Custom Quotation Value: ₹{total_cost:,} / month")
 
-    if st.button("📄 Generate Print-Ready Formal Quotation"):
+    if st.button("📄 Generate Print-Ready Custom Quotation"):
       st.session_state["generated_quotation"] = {
           "client": q_client_name,
           "reels": q_reels,
@@ -316,12 +321,12 @@ if st.session_state["selected_page"] == "Quotation Generator":
         <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
                 <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
-                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">OFFICIAL SERVICES & BRANDING QUOTATION</p>
+                <p style="color: #666; font-size: 12px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1.5px;">OFFICIAL CUSTOMIZED SERVICES QUOTATION</p>
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px;">
                 <div>
-                    <b>Quotation For:</b> {q['client']}<br>
+                    <b>Client Name:</b> {q['client']}<br>
                     <b>Prepared By:</b> THE AK MEDIA Sales Team<br>
                     <b>Location:</b> Nashik District
                 </div>
@@ -331,41 +336,41 @@ if st.session_state["selected_page"] == "Quotation Generator":
                 </div>
             </div>
 
-            <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Scope of Customized Deliverables</h3>
+            <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Customized Deliverables & Scope</h3>
             <table style="width: 100%; font-size: 14px; margin-bottom: 20px; border-collapse: collapse;">
                 <tr style="background-color: #f5f5f5;">
-                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Service Module</th>
-                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Deliverable Details</th>
+                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Service Parameter</th>
+                    <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Selected Specification</th>
                 </tr>
                 <tr>
                     <td style="padding: 8px; border: 1px solid #ddd;"><b>Monthly Reels</b></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">{q['reels']} High-Quality Trending Video Reels</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['reels']} Reels</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px; border: 1px solid #ddd;"><b>Monthly Posts</b></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">{q['posts']} Graphic Banner Posts</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">{q['posts']} Graphic Posts</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px; border: 1px solid #ddd;"><b>Page Optimization</b></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">{q['opt']}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Website Development</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Website Building</b></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">{q['web']}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;"><b>SEO Setup</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Website SEO</b></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">{q['seo']}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Custom Growth Strategy</b></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;"><b>Custom Strategy</b></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">{q['strat']}</td>
                 </tr>
             </table>
 
             <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #D4AF37; margin-bottom: 30px;">
-                <h3 style="margin: 0; color: #111;">Total Customized Package Value: ₹{q['total']:,} /-</h3>
-                <p style="margin: 5px 0 0 0; font-size: 12px; color: #555;">* Applicable taxes & ad spend budgets paid directly to platforms extra.</p>
+                <h3 style="margin: 0; color: #111;">Total Customized Package Price: ₹{q['total']:,} / month</h3>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #555;">* Building Businesses | Building Brands — THE AK MEDIA, Nashik</p>
             </div>
 
             <div style="margin-top: 40px; border-top: 2px dashed #ccc; padding-top: 20px; display: flex; justify-content: space-between; font-size: 13px; color: #555;">
@@ -385,8 +390,8 @@ if st.session_state["selected_page"] == "Quotation Generator":
     st.markdown(quotation_html, unsafe_allow_html=True)
     st.info(
         "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
-        "लॅपटॉपवर फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडून क्लायंटला व्हॉट्सॲपवर पाठवा!"
+        "लॅपटॉपवर असताना फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
+        " निवडा!"
     )
 
 # ==================== PAGE 4: MULTI-LANGUAGE OBJECTION HANDLING CHEAT SHEET ====================
@@ -412,7 +417,7 @@ elif st.session_state["selected_page"] == "Objection Cheat Sheet":
     with st.expander("❌ 'सध्या बजेट नाहीये / महाग वाटतंय'"):
       st.write(
           "**उत्तर:** 'सर, सोशल मीडिया हा खर्च नसून नवीन ग्राहक मिळवण्याची"
-          " इन्व्हेस्टमेंट आहे. १ नवीन ग्राहक जरी वाढला तरी आमची फी वसूल"
+          " इन्वेस्टमेंट आहे. १ नवीन ग्राहक जरी वाढला तरी आमची फी वसूल"
           " होते. आम्ही अगदी रिझनेबल पॅकेज देतो, एकदा ट्राय करा!'"
       )
     with st.expander("❌ 'आम्हाला गरज नाहीये / आमचा बिझनेस असाच चालतो'"):
