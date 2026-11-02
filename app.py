@@ -166,13 +166,13 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p1:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">1. Basic Star[cite: 6]</h3>
-                <h4 style="color: white;">₹8,000 - ₹10,000 / mo[cite: 6]</h4>
+                <h3 style="color: #D4AF37;">1. Basic Star</h3>
+                <h4 style="color: white;">₹10,000 / mo</h4>
                 <p style="color: #aaa; font-size: 12px;">Essential social media presence for growing local businesses.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>8 Monthly Posts[cite: 6]</li>
-                    <li>2 Basic Reels[cite: 6]</li>
-                    <li>Page Optimization[cite: 6]</li>
+                    <li>8 Monthly Posts</li>
+                    <li>2 Basic Reels</li>
+                    <li>Page Optimization</li>
                     <li>Basic Hashtag Strategy</li>
                 </ul>
             </div>
@@ -180,13 +180,13 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p2:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">2. Business Growth[cite: 6]</h3>
-                <h4 style="color: white;">₹15,000 - ₹18,000 / mo[cite: 6]</h4>
+                <h3 style="color: #D4AF37;">2. Business Growth</h3>
+                <h4 style="color: white;">₹18,000 / mo</h4>
                 <p style="color: #aaa; font-size: 12px;">Accelerate your customer engagement with consistent content.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>12 Monthly Posts[cite: 6]</li>
-                    <li>6 Managed Reels[cite: 6]</li>
-                    <li>FB/IG Ads Setup[cite: 6]</li>
+                    <li>12 Monthly Posts</li>
+                    <li>6 Managed Reels</li>
+                    <li>FB/IG Ads Setup</li>
                     <li>Content Strategy & Captions</li>
                 </ul>
             </div>
@@ -194,13 +194,13 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p3:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">3. Brand Accelerator[cite: 7]</h3>
-                <h4 style="color: white;">₹25,000 - ₹30,000 / mo[cite: 7]</h4>
+                <h3 style="color: #D4AF37;">3. Brand Accelerator</h3>
+                <h4 style="color: white;">₹30,000 / mo</h4>
                 <p style="color: #aaa; font-size: 12px;">Advanced growth strategy for established local brands.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>20 Monthly High-Impact Posts[cite: 7]</li>
-                    <li>10 Cinematic Reels (Team Shoot)[cite: 7]</li>
-                    <li>Performance Ad Management[cite: 7]</li>
+                    <li>20 Monthly High-Impact Posts</li>
+                    <li>10 Cinematic Reels (Team Shoot)</li>
+                    <li>Performance Ad Management</li>
                     <li>Custom Growth Roadmap</li>
                 </ul>
             </div>
@@ -211,13 +211,13 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p4:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">4. Advance Digital[cite: 7]</h3>
-                <h4 style="color: white;">₹45,000 - ₹50,000 / mo[cite: 7]</h4>
+                <h3 style="color: #D4AF37;">4. Advance Digital</h3>
+                <h4 style="color: white;"> ₹50,000 / mo</h4>
                 <p style="color: #aaa; font-size: 12px;">Daily brand presence for serious market expansion.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>Daily Brand Presence (30 Posts)[cite: 7]</li>
-                    <li>15 Pro-Level Reels[cite: 7]</li>
-                    <li>Google My Business (SEO)[cite: 7]</li>
+                    <li>Daily Brand Presence (30 Posts)</li>
+                    <li>15 Pro-Level Reels</li>
+                    <li>Google My Business (SEO)</li>
                     <li>Omnichannel Ads Setup</li>
                 </ul>
             </div>
@@ -225,14 +225,14 @@ if st.session_state["selected_page"] == "Quotation Generator":
     with p5:
       st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
-                <h3 style="color: #D4AF37;">5. The VIP King Pack[cite: 8]</h3>
-                <h4 style="color: white;">₹1.5 Lakh+ / mo[cite: 8]</h4>
-                <p style="color: #aaa; font-size: 12px;">Designed for Nashik's top jewelers, builders, and corporate giants[cite: 8].</p>
+                <h3 style="color: #D4AF37;">5. The VIP King Pack</h3>
+                <h4 style="color: white;">₹1.5 Lakh+ / mo</h4>
+                <p style="color: #aaa; font-size: 12px;">Designed for Nashik's top jewelers, builders, and corporate giants.</p>
                 <ul style="color: #ccc; font-size: 13px;">
-                    <li>Full E-Commerce / Dynamic Website[cite: 9, 11]</li>
-                    <li>20+ Pro Cinematic Reels with Storytelling[cite: 9]</li>
-                    <li>Direct Influencer Marketing Tie-ups[cite: 9]</li>
-                    <li>Dedicated Manager & 24/7 Priority Support[cite: 9]</li>
+                    <li>Full E-Commerce / Dynamic Website</li>
+                    <li>20+ Pro Cinematic Reels with Storytelling</li>
+                    <li>Direct Influencer Marketing Tie-ups</li>
+                    <li>Dedicated Manager & 24/7 Priority Support</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
@@ -246,55 +246,55 @@ if st.session_state["selected_page"] == "Quotation Generator":
     col_q1, col_q2 = st.columns(2)
     with col_q1:
       q_client_name = st.text_input(
-          "🏢 Client / Business Name", "Shree Samarth Traders"
+          "🏢 Client / Business Name", "Business Name"
       )
       q_reels = st.number_input(
           "🎬 मंथली किती रिल्स पाहिजेत? (Monthly Reels Count)",
           min_value=0,
           max_value=60,
-          value=4,
+          value=2,
       )
       q_posts = st.number_input(
           "🖼️ मंथली किती पोस्ट्स पाहिजेत? (Monthly Posts Count)",
           min_value=0,
           max_value=60,
-          value=10,
+          value=8,
       )
       q_opt = st.selectbox(
           "✨ पेज ऑप्टिमायझेशन करायचे आहे का? (Page Optimization)",
-          ["Yes (₹1,500)", "No"],
+          ["Yes (₹2,000)", "No"],
       )
 
     with col_q2:
       q_web = st.selectbox(
           "🌐 वेबसाईट बनवायची आहे का? (Website Building)",
-          ["No", "Basic Business Website (₹8,000)", "Advanced E-Commerce Website (₹25,000)"],
+          ["No", "Basic Business Website (₹10,000)", "Advanced E-Commerce Website (₹30,000)"],
       )
       q_seo = st.selectbox(
           "🚀 त्या वेबसाईटसाठी एसिओ (SEO) करायचे आहे का?",
-          ["No", "Basic Local SEO (₹4,000)", "Full Advanced SEO (₹8,000)"],
+          ["No", "Basic Local SEO (₹5,000)", "Full Advanced SEO (₹10,000)"],
       )
       q_strat = st.selectbox(
           "🎯 कस्टम स्ट्रॅटेजी (Custom Social Media Strategy) तयार करायची आहे का?",
-          ["Yes (₹2,000)", "No"],
+          ["Yes (₹3,500)", "No"],
       )
 
     # Calculate Total Price dynamically
-    total_cost = (q_reels * 800) + (q_posts * 400)
+    total_cost = (q_reels * 1000) + (q_posts * 500)
     if "Yes" in q_opt:
-      total_cost += 1500
+      total_cost += 2000
     if "Basic Business Website" in q_web:
-      total_cost += 8000
+      total_cost += 10000
     elif "Advanced E-Commerce Website" in q_web:
-      total_cost += 25000
+      total_cost += 30000
 
     if "Basic Local SEO" in q_seo:
-      total_cost += 4000
+      total_cost += 5000
     elif "Full Advanced SEO" in q_seo:
-      total_cost += 8000
+      total_cost += 10000
 
     if "Yes" in q_strat:
-      total_cost += 2000
+      total_cost += 3500
 
     st.markdown("---")
     st.subheader(f"💵 Total Custom Quotation Value: ₹{total_cost:,} / month")
