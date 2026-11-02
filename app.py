@@ -34,6 +34,8 @@ st.markdown(
 def init_db():
   conn = sqlite3.connect("ak_media.db", check_same_thread=False)
   cursor = conn.cursor()
+  
+  # Table for Follow-ups and Remarks
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
@@ -41,8 +43,13 @@ def init_db():
             remark TEXT
         )
     """)
+  
+  # Drop old team_activity table if columns don't match, to ensure clean migration
+  cursor.execute("DROP TABLE IF EXISTS team_activity")
+  
+  # Table for Team Activity with all new columns
   cursor.execute("""
-        CREATE TABLE IF NOT EXISTS team_activity (
+        CREATE TABLE team_activity (
             member_name TEXT PRIMARY KEY,
             leads INTEGER,
             pitches INTEGER,
@@ -64,9 +71,12 @@ default_team = {
     "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
     "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
 }
+
 for member, stats in default_team.items():
-  cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
-                 (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0))
+  cursor.execute(
+      "INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+      (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0)
+  )
 conn.commit()
 
 # ==================== INITIALIZE SESSION STATE ====================
@@ -134,7 +144,6 @@ if not st.session_state["logged_in"]:
         st.session_state["role"] = USERS_DB[input_user]["role"]
         st.session_state["display_name"] = USERS_DB[input_user]["name"]
         
-        # Reset worked_today status if new day login
         logged_name = USERS_DB[input_user]["name"]
         cursor.execute("SELECT last_active_date FROM team_activity WHERE member_name = ?", (logged_name,))
         row_dt = cursor.fetchone()
@@ -771,7 +780,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         f" {king_stats['pitches'] + king_stats['leads']})"
     )
 
-  # Interactive Work Button for Logged-in Member
   curr_user_name = st.session_state["display_name"]
   if curr_user_name in team_scores:
     w_status = team_scores[curr_user_name]["worked_today"]
@@ -964,7 +972,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
               " बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से"
               " कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
               f" ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स"
-              " छूट सकते हैं.\n\हम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
+              " छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
               " मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट"
               " भेज दें?"
           )
