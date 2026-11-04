@@ -37,18 +37,18 @@ st.markdown(
 
 # ==================== LOCAL SQLITE DATABASE SETUP ====================
 def init_db():
-  conn = sqlite3.connect("ak_media.db", check_same_thread=False)
-  cursor = conn.cursor()
-  
-  cursor.execute("""
+    conn = sqlite3.connect("ak_media.db", check_same_thread=False)
+    cursor = conn.cursor()
+    
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
             status TEXT,
             remark TEXT
         )
     """)
-  
-  cursor.execute("""
+    
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
             leads INTEGER,
@@ -58,8 +58,8 @@ def init_db():
             worked_today INTEGER
         )
     """)
-  conn.commit()
-  return conn
+    conn.commit()
+    return conn
 
 conn = init_db()
 cursor = conn.cursor()
@@ -74,13 +74,13 @@ default_team = {
 }
 
 for member, stats in default_team.items():
-  cursor.execute("SELECT last_active_date, worked_today, streak FROM team_activity WHERE member_name = ?", (member,))
-  row = cursor.fetchone()
-  if not row:
-    cursor.execute(
-        "INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
-        (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0)
-    )
+    cursor.execute("SELECT last_active_date, worked_today, streak FROM team_activity WHERE member_name = ?", (member,))
+    row = cursor.fetchone()
+    if not row:
+        cursor.execute(
+            "INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+            (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0)
+        )
 conn.commit()
 
 # ==================== STREAK & DATE CHECK LOGIC ====================
@@ -88,32 +88,32 @@ cursor.execute("SELECT member_name, last_active_date, worked_today, streak FROM 
 all_members = cursor.fetchall()
 
 for mem_name, last_dt, w_today, current_streak in all_members:
-  if last_dt != today_str:
-    if last_dt == yesterday_str:
-      if w_today == 0:
-        cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
-      else:
-        cursor.execute("UPDATE team_activity SET worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
-    else:
-      cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+    if last_dt != today_str:
+        if last_dt == yesterday_str:
+            if w_today == 0:
+                cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+            else:
+                cursor.execute("UPDATE team_activity SET worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+        else:
+            cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
 conn.commit()
 
 # ==================== INITIALIZE SESSION STATE ====================
 if "logged_in" not in st.session_state:
-  st.session_state["logged_in"] = False
+    st.session_state["logged_in"] = False
 if "username" not in st.session_state:
-  st.session_state["username"] = ""
+    st.session_state["username"] = ""
 if "role" not in st.session_state:
-  st.session_state["role"] = ""
+    st.session_state["role"] = ""
 if "display_name" not in st.session_state:
-  st.session_state["display_name"] = ""
+    st.session_state["display_name"] = ""
 
 if "selected_page" not in st.session_state:
-  st.session_state["selected_page"] = "Lead Hunter Dashboard"
+    st.session_state["selected_page"] = "Lead Hunter Dashboard"
 if "active_audit_lead" not in st.session_state:
-  st.session_state["active_audit_lead"] = None
+    st.session_state["active_audit_lead"] = None
 if "generated_quotation" not in st.session_state:
-  st.session_state["generated_quotation"] = None
+    st.session_state["generated_quotation"] = None
 
 # ==================== LOGIN SYSTEM ====================
 USERS_DB = {
@@ -135,42 +135,36 @@ USERS_DB = {
 }
 
 if not st.session_state["logged_in"]:
-  st.markdown(
-      """
+    st.markdown(
+        """
         <div style="background-color: #0b0b0b; padding: 30px; border-bottom: 3px solid #D4AF37; border-radius: 10px; margin-bottom: 25px; text-align: center;">
             <h1 style="color: #D4AF37; margin: 0; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 2px;">THE AK MEDIA</h1>
             <p style="color: #FFFFFF; margin: 5px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 1.5px;">Building Businesses | Building Brands — Secure Login</p>
         </div>
         """,
-      unsafe_allow_html=True,
-  )
-
-  col1, col2, col3 = st.columns([1, 1.5, 1])
-  with col2:
-    st.subheader("🔐 Team Portal Login")
-    st.info(
-        "टीप: युजरआयडी आणि पासवर्ड फक्त द एके मीडियाच्या ऑनरकडून (MR.AK)"
-        " प्रदान केला जाईल."
+        unsafe_allow_html=True,
     )
 
-    input_user = st.text_input("👤 Enter User ID")
-    input_pass = st.text_input("🔑 Enter Password", type="password")
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        st.subheader("🔐 Team Portal Login")
+        st.info("टीप: युजरआयडी आणि पासवर्ड फक्त द एके मीडियाच्या ऑनरकडून (MR.AK) प्रदान केला जाईल.")
 
-    if st.button("🚀 Login to System"):
-      if input_user in USERS_DB and USERS_DB[input_user]["pass"] == input_pass:
-        st.session_state["logged_in"] = True
-        st.session_state["username"] = input_user
-        st.session_state["role"] = USERS_DB[input_user]["role"]
-        st.session_state["display_name"] = USERS_DB[input_user]["name"]
+        input_user = st.text_input("👤 Enter User ID")
+        input_pass = st.text_input("🔑 Enter Password", type="password")
 
-        st.success(
-            f"✅ Welcome back, {st.session_state['display_name']}! Loading"
-            " dashboard..."
-        )
-        st.rerun()
-      else:
-        st.error("❌ चुकाचा युजरआयडी किंवा पासवर्ड! कृपया पुन्हा प्रयत्न करा.")
-  st.stop()
+        if st.button("🚀 Login to System"):
+            if input_user in USERS_DB and USERS_DB[input_user]["pass"] == input_pass:
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = input_user
+                st.session_state["role"] = USERS_DB[input_user]["role"]
+                st.session_state["display_name"] = USERS_DB[input_user]["name"]
+
+                st.success(f"✅ Welcome back, {st.session_state['display_name']}! Loading dashboard...")
+                st.rerun()
+            else:
+                st.error("❌ चुकाचा युजरआयडी किंवा पासवर्ड! कृपया पुन्हा प्रयत्न करा.")
+    st.stop()
 
 # ==================== FORMAL HEADER (Post Login) ====================
 st.markdown(
@@ -185,50 +179,43 @@ st.markdown(
 
 # Top Bar with Logout & User Info
 top_c1, top_c2, top_c3 = st.columns([2, 2, 1])
-top_c1.write(
-    f"👤 **Logged in as:** {st.session_state['display_name']} ("
-    f"*{st.session_state['role']}*)"
-)
+top_c1.write(f"👤 **Logged in as:** {st.session_state['display_name']} (*{st.session_state['role']}*)")
 if top_c3.button("🚪 Logout"):
-  st.session_state["logged_in"] = False
-  st.rerun()
+    st.session_state["logged_in"] = False
+    st.rerun()
 
 # Navigation Menu Bar
 n1, n2, n3, n4, n5 = st.columns(5)
 with n1:
-  if st.button("🎯 Lead Hunter"):
-    st.session_state["selected_page"] = "Lead Hunter Dashboard"
+    if st.button("🎯 Lead Hunter"):
+        st.session_state["selected_page"] = "Lead Hunter Dashboard"
 with n2:
-  if st.button("📑 Audit Report"):
-    st.session_state["selected_page"] = "Audit Report View"
+    if st.button("📑 Audit Report"):
+        st.session_state["selected_page"] = "Audit Report View"
 with n3:
-  if st.button("💰 Service Plans & Quote"):
-    st.session_state["selected_page"] = "Quotation Generator"
+    if st.button("💰 Service Plans & Quote"):
+        st.session_state["selected_page"] = "Quotation Generator"
 with n4:
-  if st.button("💬 Message Library"):
-    st.session_state["selected_page"] = "Message Library"
+    if st.button("💬 Message Library"):
+        st.session_state["selected_page"] = "Message Library"
 with n5:
-  if st.button("💡 Objection Sheet"):
-    st.session_state["selected_page"] = "Objection Cheat Sheet"
+    if st.button("💡 Objection Sheet"):
+        st.session_state["selected_page"] = "Objection Cheat Sheet"
 
 st.markdown("---")
 
 # ==================== PAGE 5: SERVICE PLANS & QUOTATION GENERATOR ====================
 if st.session_state["selected_page"] == "Quotation Generator":
-  st.title("💰 THE AK MEDIA - Service Plans & Instant Quotation Generator")
-  st.write(
-      "### 📋 पीपीटीनुसार ५ मुख्य प्लॅन्स आणि कस्टमाइझ्ड कोटेशन कॅल्क्युलेटर"
-  )
+    st.title("💰 THE AK MEDIA - Service Plans & Instant Quotation Generator")
+    st.write("### 📋 पीपीटीनुसार ५ मुख्य प्लॅन्स आणि कस्टमाइझ्ड कोटेशन कॅल्क्युलेटर")
 
-  tab1, tab2 = st.tabs(
-      ["⭐ Official 5 Service Plans", "⚙️ Custom Quotation Generator"]
-  )
+    tab1, tab2 = st.tabs(["⭐ Official 5 Service Plans", "⚙️ Custom Quotation Generator"])
 
-  with tab1:
-    st.subheader("📌 THE AK MEDIA - अधिकृत ५ बिझनेस प्लॅन्स")
-    p1, p2, p3 = st.columns(3)
-    with p1:
-      st.markdown("""
+    with tab1:
+        st.subheader("📌 THE AK MEDIA - अधिकृत ५ बिझनेस प्लॅन्स")
+        p1, p2, p3 = st.columns(3)
+        with p1:
+            st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
                 <h3 style="color: #D4AF37;">1. Basic Star</h3>
                 <h4 style="color: white;">₹10,000 / mo</h4>
@@ -241,8 +228,8 @@ if st.session_state["selected_page"] == "Quotation Generator":
                 </ul>
             </div>
             """, unsafe_allow_html=True)
-    with p2:
-      st.markdown("""
+        with p2:
+            st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
                 <h3 style="color: #D4AF37;">2. Business Growth</h3>
                 <h4 style="color: white;">₹18,000 / mo</h4>
@@ -255,8 +242,8 @@ if st.session_state["selected_page"] == "Quotation Generator":
                 </ul>
             </div>
             """, unsafe_allow_html=True)
-    with p3:
-      st.markdown("""
+        with p3:
+            st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
                 <h3 style="color: #D4AF37;">3. Brand Accelerator</h3>
                 <h4 style="color: white;">₹30,000 / mo</h4>
@@ -270,10 +257,10 @@ if st.session_state["selected_page"] == "Quotation Generator":
             </div>
             """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    p4, p5 = st.columns(2)
-    with p4:
-      st.markdown("""
+        st.markdown("<br>", unsafe_allow_html=True)
+        p4, p5 = st.columns(2)
+        with p4:
+            st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
                 <h3 style="color: #D4AF37;">4. Advance Digital</h3>
                 <h4 style="color: white;"> ₹50,000 / mo</h4>
@@ -286,8 +273,8 @@ if st.session_state["selected_page"] == "Quotation Generator":
                 </ul>
             </div>
             """, unsafe_allow_html=True)
-    with p5:
-      st.markdown("""
+        with p5:
+            st.markdown("""
             <div style="border: 2px solid #D4AF37; padding: 15px; border-radius: 8px; background-color: #111;">
                 <h3 style="color: #D4AF37;">5. The VIP King Pack</h3>
                 <h4 style="color: white;">₹1.5 Lakh+ / mo</h4>
@@ -301,85 +288,59 @@ if st.session_state["selected_page"] == "Quotation Generator":
             </div>
             """, unsafe_allow_html=True)
 
-  with tab2:
-    st.subheader("⚙️ Custom Quotation Generator (क्लायंटसाठी कस्टमाइझ्ड प्लॅन)")
-    st.write(
-        "क्लायंटच्या गरजेनुसार खालील घटक निवडून तात्काळ अचूक कोटेशन तयार करा:"
-    )
+    with tab2:
+        st.subheader("⚙️ Custom Quotation Generator (क्लायंटसाठी कस्टमाइझ्ड प्लॅन)")
+        st.write("क्लायंटच्या गरजेनुसार खालील घटक निवडून तात्काळ अचूक कोटेशन तयार करा:")
 
-    col_q1, col_q2 = st.columns(2)
-    with col_q1:
-      q_client_name = st.text_input(
-          "🏢 Client / Business Name", "Business Name"
-      )
-      q_reels = st.number_input(
-          "🎬 मंथली किती रिल्स पाहिजेत? (Monthly Reels Count)",
-          min_value=0,
-          max_value=60,
-          value=2,
-      )
-      q_posts = st.number_input(
-          "🖼️ मंथली किती पोस्ट्स पाहिजेत? (Monthly Posts Count)",
-          min_value=0,
-          max_value=60,
-          value=8,
-      )
-      q_opt = st.selectbox(
-          "✨ पेज ऑप्टिमायझेशन करायचे आहे का? (Page Optimization)",
-          ["Yes (₹2,000)", "No"],
-      )
+        col_q1, col_q2 = st.columns(2)
+        with col_q1:
+            q_client_name = st.text_input("🏢 Client / Business Name", "Business Name")
+            q_reels = st.number_input("🎬 मंथली किती रिल्स पाहिजेत? (Monthly Reels Count)", min_value=0, max_value=60, value=2)
+            q_posts = st.number_input("🖼️ मंथली किती पोस्ट्स पाहिजेत? (Monthly Posts Count)", min_value=0, max_value=60, value=8)
+            q_opt = st.selectbox("✨ पेज ऑप्टिमायझेशन करायचे आहे का? (Page Optimization)", ["Yes (₹2,000)", "No"])
 
-    with col_q2:
-      q_web = st.selectbox(
-          "🌐 वेबसाईट बनवायची आहे का? (Website Building)",
-          ["No", "Basic Business Website (₹10,000)", "Advanced E-Commerce Website (₹30,000)"],
-      )
-      q_seo = st.selectbox(
-          "🚀 त्या वेबसाईटसाठी एसिओ (SEO) करायचे आहे का?",
-          ["No", "Basic Local SEO (₹5,000)", "Full Advanced SEO (₹10,000)"],
-      )
-      q_strat = st.selectbox(
-          "🎯 कस्टम स्ट्रॅटेजी (Custom Social Media Strategy) तयार करायची आहे का?",
-          ["Yes (₹3,500)", "No"],
-      )
+        with col_q2:
+            q_web = st.selectbox("🌐 वेबसाईट बनवायची आहे का? (Website Building)", ["No", "Basic Business Website (₹10,000)", "Advanced E-Commerce Website (₹30,000)"])
+            q_seo = st.selectbox("🚀 त्या वेबसाईटसाठी एसिओ (SEO) करायचे आहे का?", ["No", "Basic Local SEO (₹5,000)", "Full Advanced SEO (₹10,000)"])
+            q_strat = st.selectbox("🎯 कस्टम स्ट्रॅटेजी (Custom Social Media Strategy) तयार करायची आहे का?", ["Yes (₹3,500)", "No"])
 
-    total_cost = (q_reels * 1000) + (q_posts * 500)
-    if "Yes" in q_opt:
-      total_cost += 2000
-    if "Basic Business Website" in q_web:
-      total_cost += 10000
-    elif "Advanced E-Commerce Website" in q_web:
-      total_cost += 30000
+        total_cost = (q_reels * 1000) + (q_posts * 500)
+        if "Yes" in q_opt:
+            total_cost += 2000
+        if "Basic Business Website" in q_web:
+            total_cost += 10000
+        elif "Advanced E-Commerce Website" in q_web:
+            total_cost += 30000
 
-    if "Basic Local SEO" in q_seo:
-      total_cost += 5000
-    elif "Full Advanced SEO" in q_seo:
-      total_cost += 10000
+        if "Basic Local SEO" in q_seo:
+            total_cost += 5000
+        elif "Full Advanced SEO" in q_seo:
+            total_cost += 10000
 
-    if "Yes" in q_strat:
-      total_cost += 3500
+        if "Yes" in q_strat:
+            total_cost += 3500
 
-    st.markdown("---")
-    st.subheader(f"💵 Total Custom Quotation Value: ₹{total_cost:,} / month")
+        st.markdown("---")
+        st.subheader(f"💵 Total Custom Quotation Value: ₹{total_cost:,} / month")
 
-    if st.button("📄 Generate Print-Ready Custom Quotation"):
-      st.session_state["generated_quotation"] = {
-          "client": q_client_name,
-          "reels": q_reels,
-          "posts": q_posts,
-          "opt": q_opt,
-          "web": q_web,
-          "seo": q_seo,
-          "strat": q_strat,
-          "total": total_cost,
-          "date": str(datetime.date.today()),
-      }
+        if st.button("📄 Generate Print-Ready Custom Quotation"):
+            st.session_state["generated_quotation"] = {
+                "client": q_client_name,
+                "reels": q_reels,
+                "posts": q_posts,
+                "opt": q_opt,
+                "web": q_web,
+                "seo": q_seo,
+                "strat": q_strat,
+                "total": total_cost,
+                "date": str(datetime.date.today()),
+            }
 
-  if st.session_state["generated_quotation"] is not None:
-    q = st.session_state["generated_quotation"]
-    st.markdown("---")
+    if st.session_state["generated_quotation"] is not None:
+        q = st.session_state["generated_quotation"]
+        st.markdown("---")
 
-    quotation_html = f"""
+        quotation_html = f"""
         <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
                 <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
@@ -449,657 +410,476 @@ if st.session_state["selected_page"] == "Quotation Generator":
             </div>
         </div>
         """
-    st.markdown(quotation_html, unsafe_allow_html=True)
-    st.info(
-        "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
-        "लॅपटॉपवर असताना फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडा!"
-    )
+        st.markdown(quotation_html, unsafe_allow_html=True)
+        st.info("💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\nलॅपटॉपवर असताना फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'** निवडा!")
 
 # ==================== PAGE 4: MULTI-LANGUAGE OBJECTION HANDLING CHEAT SHEET ====================
 elif st.session_state["selected_page"] == "Objection Cheat Sheet":
-  st.title("💡 Objection Handling Cheat-Sheet")
-  st.write(
-      "### 🛡️ क्लायंटच्या प्रश्नांना/कारणांना (Objections) उडवण्यासाठी"
-      " रेडीमेड उत्तरं!"
-  )
+    st.title("💡 Objection Handling Cheat-Sheet")
+    st.write("### 🛡️ क्लायंटच्या प्रश्नांना/कारणांना (Objections) उडवण्यासाठी रेडीमेड उत्तरं!")
 
-  obj_lang = st.selectbox(
-      "🌐 भाषेची निवड करा (Select Objection Language)",
-      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
-  )
+    obj_lang = st.selectbox("🌐 भाषेची निवड करा (Select Objection Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
 
-  if "Marathi" in obj_lang:
-    with st.expander("❌ 'आम्ही आधीच सोशल मीडिया करतोय / दुसरी एजन्सी आहे'"):
-      st.write(
-          "**उत्तर:** 'खूप छान सर! पण आम्ही तुमच्या पेजचे ऑडिट केले तेव्हा गेल्या"
-          " १५ दिवसांत नवीन पोस्ट/रील दिसली नाही. तुमच्या सध्याच्या एजन्सीसोबत"
-          " तुम्ही मोफत सोशल मीडिया ऑडिट कम्पेअर करून बघू शकता!'"
-      )
-    with st.expander("❌ 'सध्या बजेट नाहीये / महाग वाटतंय'"):
-      st.write(
-          "**उत्तर:** 'सर, सोशल मीडिया हा खर्च नसून नवीन ग्राहक मिळवण्याची"
-          " इन्वेस्टमेंट आहे. १ नवीन ग्राहक जरी वाढला तरी आमची फी वसूल"
-          " होते. आम्ही अगदी रिझनेबल पॅकेज देतो, एकदा ट्राय करा!'"
-      )
-    with st.expander("❌ 'आम्हाला गरज नाहीये / आमचा बिझनेस असाच चालतो'"):
-      st.write(
-          "**उत्तर:** 'सर, तुमचा बिझनेस भारी आहेच, पण आजकाल ग्राहक दुकानात"
-          " येण्याआधी ऑनलाइन सर्च करतात. तुमचे प्रतिस्पर्धी सोशल मीडियावर"
-          " ॲक्टिव्ह आहेत, त्यामुळे जुने क्लायंट्स टिकवण्यासाठी हे गरजेचे आहे!'"
-      )
+    if "Marathi" in obj_lang:
+        with st.expander("❌ 'आम्ही आधीच सोशल मीडिया करतोय / दुसरी एजन्सी आहे'"):
+            st.write("**उत्तर:** 'खूप छान सर! पण आम्ही तुमच्या पेजचे ऑडिट केले तेव्हा गेल्या १५ दिवसांत नवीन पोस्ट/रील दिसली नाही. तुमच्या सध्याच्या एजन्सीसोबत तुम्ही मोफत सोशल मीडिया ऑडिट कम्पेअर करून बघू शकता!'")
+        with st.expander("❌ 'सध्या बजेट नाहीये / महाग वाटतंय'"):
+            st.write("**उत्तर:** 'सर, सोशल मीडिया हा खर्च नसून नवीन ग्राहक मिळवण्याची इन्वेस्टमेंट आहे. १ नवीन ग्राहक जरी वाढला तरी आमची फी वसूल होते. आम्ही अगदी रिझनेबल पॅकेज देतो, एकदा ट्राय करा!'")
+        with st.expander("❌ 'आम्हाला गरज नाहीये / आमचा बिझनेस असाच चालतो'"):
+            st.write("**उत्तर:** 'सर, तुमचा बिझनेस भारी आहेच, पण आजकाल ग्राहक दुकानात येण्याआधी ऑनलाइन सर्च करतात. तुमचे प्रतिस्पर्धी सोशल मीडियावर ॲक्टिव्ह आहेत, त्यामुळे जुने क्लायंट्स टिकवण्यासाठी हे गरजेचे आहे!'")
 
-  elif "Hindi" in obj_lang:
-    with st.expander("❌ 'हम पहले से सोशल मीडिया कर रहे हैं'"):
-      st.write(
-          "**उत्तर:** 'बहुत बढ़िया सर! लेकिन जब हमने आपका पेज चेक किया, तो पिछले"
-          " 15 दिनों से कोई पोस्ट नहीं दिखा. आप अपनी करंट एजेंसी के साथ हमारा फ्री"
-          " ऑडिट रिपोर्ट कम्पेयर करके देख सकते हैं!'"
-      )
-    with st.expander("❌ 'अभी बजट नहीं है / महंगा है'"):
-      st.write(
-          "**उत्तर:** 'सर, सोशल मीडिया खर्चा नहीं बल्कि नए कस्टमर्स लाने का"
-          " इन्वेस्टमेंट है. 1-2 नए कस्टमर आने पर ही हमारी फीस कवर हो जाती"
-          " है. हमारा पैकेज काफी अफोर्डेबल है!'"
-      )
-    with st.expander("❌ 'हमें जरूरत नहीं है'"):
-      st.write(
-          "**उत्तर:** 'सर, आपका काम अच्छा है लेकिन आजकल कस्टमर दुकान पर आने से"
-          " पहले ऑनलाइन सर्च करते हैं. आपके कॉम्पिटिटर्स एक्टिव हैं, इसलिए ऑनलाइन"
-          " रहना बहुत जरूरी है!'"
-      )
+    elif "Hindi" in obj_lang:
+        with st.expander("❌ 'हम पहले से सोशल मीडिया कर रहे हैं'"):
+            st.write("**उत्तर:** 'बहुत बढ़िया सर! लेकिन जब हमने आपका पेज चेक किया, तो पिछले 15 दिनों से कोई पोस्ट नहीं दिखा. आप अपनी करंट एजेंसी के साथ हमारा फ्री ऑडिट रिपोर्ट कम्पेयर करके देख सकते हैं!'")
+        with st.expander("❌ 'अभी बजट नहीं है / महंगा है'"):
+            st.write("**उत्तर:** 'सर, सोशल मीडिया खर्चा नहीं बल्कि नए कस्टमर्स लाने का इन्वेस्टमेंट है. 1-2 नए कस्टमर आने पर ही हमारी फीस कवर हो जाती है. हमारा पैकेज काफी अफोर्डेबल है!'")
+        with st.expander("❌ 'हमें जरूरत नहीं है'"):
+            st.write("**उत्तर:** 'सर, आपका काम अच्छा है लेकिन आजकल कस्टमर दुकान पर आने से पहले ऑनलाइन सर्च करते हैं. आपके कॉम्पिटिटर्स एक्टिव हैं, इसलिए ऑनलाइन रहना बहुत जरूरी है!'")
 
-  else:  # English
-    with st.expander(
-        "❌ 'We are already doing social media / Have another agency'"
-    ):
-      st.write(
-          "**Response:** 'That's great sir! However, we noticed no updates on"
-          " your page for the last 15 days. We offer a Free Social Media Audit"
-          " so you can compare the output with your current agency.'"
-      )
-    with st.expander("❌ 'We don't have the budget / Too expensive'"):
-      st.write(
-          "**Response:** 'Sir, social media marketing is an investment to bring"
-          " in new walk-in clients. Acquiring just 1-2 new recurring clients"
-          " covers our monthly cost. We offer flexible plans!'"
-      )
-    with st.expander("❌ 'We don't need digital marketing'"):
-      st.write(
-          "**Response:** 'Sir, while your word-of-mouth is strong, modern"
-          " customers check online profiles first. Competitors in your area are"
-          " aggressively posting reels to capture local market share.'"
-      )
+    else:  # English
+        with st.expander("❌ 'We are already doing social media / Have another agency'"):
+            st.write("**Response:** 'That's great sir! However, we noticed no updates on your page for the last 15 days. We offer a Free Social Media Audit so you can compare the output with your current agency.'")
+        with st.expander("❌ 'We don't have the budget / Too expensive'"):
+            st.write("**Response:** 'Sir, social media marketing is an investment to bring in new walk-in clients. Acquiring just 1-2 new recurring clients covers our monthly cost. We offer flexible plans!'")
+        with st.expander("❌ 'We don't need digital marketing'"):
+            st.write("**Response:** 'Sir, while your word-of-mouth is strong, modern customers check online profiles first. Competitors in your area are aggressively posting reels to capture local market share.'")
 
-  if st.button("⬅️ Back to Lead Dashboard"):
-    st.session_state["selected_page"] = "Lead Hunter Dashboard"
-    st.rerun()
+    if st.button("⬅️ Back to Lead Dashboard"):
+        st.session_state["selected_page"] = "Lead Hunter Dashboard"
+        st.rerun()
 
 # ==================== PAGE 3: QUICK MESSAGE TEMPLATES LIBRARY ====================
 elif st.session_state["selected_page"] == "Message Library":
-  st.title("💬 Quick Message Templates / Copy-Paste Library")
-  st.write(
-      "### 🚀 वेगवेगळ्या व्यवसायांसाठी आणि भाषांसाठी तयार केलेले कॉल्स आणि"
-      " व्हॉट्सॲप पिचेस"
-  )
+    st.title("💬 Quick Message Templates / Copy-Paste Library")
+    st.write("### 🚀 वेगवेगळ्या व्यवसायांसाठी आणि भाषांसाठी तयार केलेले कॉल्स आणि व्हॉट्सॲप पिचेस")
 
-  lib_lang = st.selectbox(
-      "🌐 गॅलरीची भाषा निवडा (Select Message Language)",
-      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
-  )
+    lib_lang = st.selectbox("🌐 गॅलरीची भाषा निवडा (Select Message Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
 
-  tab1, tab2, tab3 = st.tabs(
-      ["☕ Cafes & Restaurants", "🏋️ Gyms & Fitness", "🛍️ Retail & Clothing"]
-  )
+    tab1, tab2, tab3 = st.tabs(["☕ Cafes & Restaurants", "🏋️ Gyms & Fitness", "🛍️ Retail & Clothing"])
 
-  if "Marathi" in lib_lang:
-    with tab1:
-      st.subheader("☕ कॅफे / रेस्टॉरंट - मराठी pitch")
-      st.code(
-          "नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही"
-          " तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन"
-          " पोस्ट किंवा रील्स अपडेट झालेली नाहीत.\n\nआजकाल तरुण वर्ग आणि"
-          " कस्टमर्स ऑनलाइन सर्च करूनच कॅफे निवडतात. सोशल मीडिया इन-ॲक्टिव्ह"
-          " राहिल्याने नवीन कस्टमर्स प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक"
-          " जिल्ह्यातील कॅफेसाठी प्रोफेशनल रील्स, ग्राफिक डिझाईन आणि सोशल मीडिया"
-          " मॅनेजमेंट हँडल करतो. तुमच्या पेजचा फ्री ऑडिट रिपोर्ट हवा असल्यास"
-          " नक्की सांगा!",
-          language="text",
-      )
-    with tab2:
-      st.subheader("🏋️ जिम / फिटनेस क्लब - मराठी pitch")
-      st.code(
-          "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस"
-          " लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत"
-          " असतात. तुमच्या जिमचे पेज सध्या इन-ॲक्टिव्ह दिसतेय.\n\nआम्ही जिमचे"
-          " ब्राँडिंग, एनर्जेटिक रील्स आणि लोकल लीड जनरेशन कॅम्पेन हँडल करतो."
-          " ज्यामुळे नवीन मेंबरशिप वाढण्यास मदत होईल. मोफत सल्ला हवा का?",
-          language="text",
-      )
-    with tab3:
-      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोअर - मराठी pitch")
-      st.code(
-          "नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या"
-          " दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल"
-          " ऑफर्स आणि नवीन स्टॉकचे प्रमोशन सोशल मीडियावर असणे खूप गरजेचे आहे.\n\nआमच्या"
-          " डिजिटल सर्व्हिसेसबद्दल माहिती हवी असल्यास नक्की कळवा!",
-          language="text",
-      )
+    if "Marathi" in lib_lang:
+        with tab1:
+            st.subheader("☕ कॅफे / रेस्टॉरंट - मराठी pitch")
+            st.code("नमस्कार [Business Name],\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही तुमचं सोशल मीडिया पेज पाहिलं, गेल्या काही दिवसांपासून त्यावर नवीन पोस्ट किंवा रील्स अपडेट झालेली नाहीत.\n\nआजकाल तरुण वर्ग आणि कस्टमर्स ऑनलाइन सर्च करूनच कॅफे निवडतात. सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने नवीन कस्टमर्स प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील कॅफेसाठी प्रोफेशनल रील्स, ग्राफिक डिझाईन आणि सोशल मीडिया मॅनेजमेंट हँडल करतो. तुमच्या पेजचा फ्री ऑडिट रिपोर्ट हवा असल्यास नक्की सांगा!", language="text")
+        with tab2:
+            st.subheader("🏋️ जिम / फिटनेस क्लब - मराठी pitch")
+            st.code("हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) कडून संपर्क करतोय. फिटनेस लव्हर्स नेहमी नवीन ऑफर्स आणि वर्कआउट व्हिडिओज सोशल मीडियावर शोधत असतात. तुमच्या जिमचे पेज सध्या इन-ॲक्टिव्ह दिसतेय.\n\nआम्ही जिमचे ब्राँडिंग, एनर्जेटिक रील्स आणि लोकल लीड जनरेशन कॅम्पेन हँडल करतो. ज्यामुळे नवीन मेंबरशिप वाढण्यास मदत होईल. मोफत सल्ला हवा का?", language="text")
+        with tab3:
+            st.subheader("🛍️ रिटेल / क्लोदिंग स्टोअर - मराठी pitch")
+            st.code("नमस्कार [Business Name],\n\nमी THE AK MEDIA मधून बोलतोय. तुमच्या दुकानाचे डिजिटल ब्रँडिंग वाढवण्यासाठी आम्ही मदत करू शकतो. फेस्टिव्हल ऑफर्स आणि नवीन स्टॉकचे प्रमोशन सोशल मीडियावर असणे खूप गरजेचे आहे.\n\nआमच्या डिजिटल सर्व्हिसेसबद्दल माहिती हवी असल्यास नक्की कळवा!", language="text")
 
-  elif "Hindi" in lib_lang:
-    with tab1:
-      st.subheader("☕ कैफे / रेस्टोरेंट - हिंदी पिच")
-      st.code(
-          "नमस्ते [Business Name],\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा"
-          " हूँ. हमने आपका सोशल मीडिया पेज देखा, पिछले कुछ दिनों से उस पर"
-          " कोई नई पोस्ट या रील्स अपडेट नहीं हुई है.\n\nआजकल कस्टमर्स ऑनलाइन सर्च"
-          " करके ही कैफे चुनते हैं. सोशल मीडिया इन-एक्टिव रहने से नए कस्टमर्स"
-          " कॉम्पिटिटर्स के पास जा सकते हैं.\n\nहम नाशिक रीजन के कैफे के लिए"
-          " प्रोफेशनल रील्स, ग्राफिक डिज़ाइन और सोशल मीडिया मैनेजमेंट हैंडल"
-          " करते हैं. क्या आपके पेज के लिए फ्री ऑडिट रिपोर्ट भेज दें?",
-          language="text",
-      )
-    with tab2:
-      st.subheader("🏋️ जिम / फिटनेस क्लब - हिंदी पिच")
-      st.code(
-          "हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) से संपर्क कर रहे हैं."
-          " फिटनेस लवर्स हमेशा सोशल मीडिया पर नए ऑफर्स और वर्कआउट वीडियो खोजते"
-          " रहते हैं. आपकी जिम का पेज फिलहाल इन-एक्टिव दिख रहा है.\n\nहम जिम"
-          " ब्रांडिंग, एनर्जेटिक रील्स और लोकल लीड जनरेशन कैंपेन हैंडल करते हैं."
-          " क्या फ्री कंसल्टेशन चाहिए?",
-          language="text",
-      )
-    with tab3:
-      st.subheader("🛍️ रिटेल / क्लोदिंग स्टोर - हिंदी पिच")
-      st.code(
-          "नमस्ते [Business Name],\n\nमैं THE AK MEDIA से बात कर रहा हूँ. आपके"
-          " स्टोर की डिजिटल ब्रांडिंग बढ़ाने में हम मदद कर सकते हैं. फेस्टिवल"
-          " ऑफर्स और नए स्टॉक का प्रमोशन सोशल मीडिया पर होना बहुत जरूरी है.\n\nहमारी"
-          " डिजिटल सर्विसेज के बारे में जानकारी चाहिए क्या?",
-          language="text",
-      )
+    elif "Hindi" in lib_lang:
+        with tab1:
+            st.subheader("☕ कैफे / रेस्टोरेंट - हिंदी पिच")
+            st.code("नमस्ते [Business Name],\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा हूँ. हमने आपका सोशल मीडिया पेज देखा, पिछले कुछ दिनों से उस पर कोई नई पोस्ट या रील्स अपडेट नहीं हुई है.\n\nआजकल कस्टमर्स ऑनलाइन सर्च करके ही कैफे चुनते हैं. सोशल मीडिया इन-एक्टिव रहने से नए कस्टमर्स कॉम्पिटिटर्स के पास जा सकते हैं.\n\nहम नाशिक रीजन के कैफे के लिए प्रोफेशनल रील्स, ग्राफिक डिज़ाइन और सोशल मीडिया मैनेजमेंट हैंडल करते हैं. क्या आपके पेज के लिए फ्री ऑडिट रिपोर्ट भेज दें?", language="text")
+        with tab2:
+            st.subheader("🏋️ जिम / फिटनेस क्लब - हिंदी पिच")
+            st.code("हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) से संपर्क कर रहे हैं. फिटनेस लवर्स हमेशा सोशल मीडिया पर नए ऑफर्स और वर्कआउट वीडियो खोजते रहते हैं. आपकी जिम का पेज फिलहाल इन-एक्टिव दिख रहा है.\n\nहम जिम ब्रांडिंग, एनर्जेटिक रील्स और लोकल लीड जनरेशन कैंपेन हैंडल करते हैं. क्या फ्री कंसल्टेशन चाहिए?", language="text")
+        with tab3:
+            st.subheader("🛍️ रिटेल / क्लोदिंग स्टोर - हिंदी पिच")
+            st.code("नमस्ते [Business Name],\n\nमैं THE AK MEDIA से बात कर रहा हूँ. आपके स्टोर की डिजिटल ब्रांडिंग बढ़ाने में हम मदद कर सकते हैं. फेस्टिवल ऑफर्स और नए स्टॉक का प्रमोशन सोशल मीडिया पर होना बहुत जरूरी है.\n\nहमारी डिजिटल सर्विसेज के बारे में जानकारी चाहिए क्या?", language="text")
 
-  else:  # English
-    with tab1:
-      st.subheader("☕ Cafe / Restaurant - English Pitch")
-      st.code(
-          "Hi [Business Name],\n\nI'm reaching out from THE AK MEDIA Nashik. We"
-          " checked your social media presence and noticed that your handles"
-          " haven't been active recently.\n\nMost modern customers search"
-          " online before visiting a cafe. Staying inactive means losing"
-          " potential footfall to competitors.\n\nWe manage professional"
-          " social media, reels, and branding for businesses across Nashik."
-          " Would you like a Free Social Media Audit Report?",
-          language="text",
-      )
-    with tab2:
-      st.subheader("🏋️ Gym / Fitness - English Pitch")
-      st.code(
-          "Hi [Business Name],\n\nCalling from THE AK MEDIA Nashik. Fitness"
-          " enthusiasts actively look for active workout content and offers"
-          " online. Your gym page looks inactive right now.\n\nWe specialize in"
-          " fitness branding, high-energy reels, and local lead generation."
-          " Interested in a quick free audit?",
-          language="text",
-      )
-    with tab3:
-      st.subheader("🛍️ Retail / Clothing - English Pitch")
-      st.code(
-          "Hi [Business Name],\n\nGreeting from THE AK MEDIA. We can help scale"
-          " your store's digital presence and run targeted local promotions"
-          " for festive offers and new inventory.\n\nWould you like to explore"
-          " our digital branding solutions?",
-          language="text",
-      )
+    else:  # English
+        with tab1:
+            st.subheader("☕ Cafe / Restaurant - English Pitch")
+            st.code("Hi [Business Name],\n\nI'm reaching out from THE AK MEDIA Nashik. We checked your social media presence and noticed that your handles haven't been active recently.\n\nMost modern customers search online before visiting a cafe. Staying inactive means losing potential footfall to competitors.\n\nWe manage professional social media, reels, and branding for businesses across Nashik. Would you like a Free Social Media Audit Report?", language="text")
+        with tab2:
+            st.subheader("🏋️ Gym / Fitness - English Pitch")
+            st.code("Hi [Business Name],\n\nCalling from THE AK MEDIA Nashik. Fitness enthusiasts actively look for active workout content and offers online. Your gym page looks inactive right now.\n\nWe specialize in fitness branding, high-energy reels, and local lead generation. Interested in a quick free audit?", language="text")
+        with tab3:
+            st.subheader("🛍️ Retail / Clothing - English Pitch")
+            st.code("Hi [Business Name],\n\nGreeting from THE AK MEDIA. We can help scale your store's digital presence and run targeted local promotions for festive offers and new inventory.\n\nWould you like to explore our digital branding solutions?", language="text")
 
-  if st.button("⬅️ Back to Lead Dashboard"):
-    st.session_state["selected_page"] = "Lead Hunter Dashboard"
-    st.rerun()
+    if st.button("⬅️ Back to Lead Dashboard"):
+        st.session_state["selected_page"] = "Lead Hunter Dashboard"
+        st.rerun()
 
 # ==================== PAGE 1: LEAD HUNTER DASHBOARD ====================
 elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
-  st.title("🎯 Hot Client Hunter & AI Lead System (Nashik District)")
-  st.write(
-      "### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा, AI स्कोर तपासा आणि"
-      " एका क्लिकवर कॉल/पिच पाठवा!"
-  )
+    st.title("🎯 Hot Client Hunter & AI Lead System (Nashik District)")
+    st.write("### 🚀 नाशिक जिल्ह्यातील इन-ॲक्टिव्ह क्लायंट्स शोधा, AI स्कोर तपासा आणि एका क्लिकवर कॉल/पिच पाठवा!")
 
-  # ==================== SIDEBAR FILTERS & EXPORT FOLLOW-UP HISTORY ====================
-  st.sidebar.header("🔍 Search Filters")
+    # ==================== SIDEBAR FILTERS & EXPORT FOLLOW-UP HISTORY ====================
+    st.sidebar.header("🔍 Search Filters")
 
-  nashik_district_data = {
-      "Chandwad": [
-          "Bus Stand Area, Chandwad",
-          "Main Market, Chandwad",
-          "Manmath Nagar, Chandwad",
-          "Dhawkhar Nagar, Chandwad",
-          "Deola Road, Chandwad",
-          "Rajendra Nagar, Chandwad",
-          "Station Road, Chandwad",
-          "Vinchur Road, Chandwad",
-      ],
-      "Nashik": [
-          "College Road, Nashik",
-          "Gangapur Road, Nashik",
-          "Cidco, Nashik",
-          "Indiranagar, Nashik",
-          "Panchavati, Nashik",
-          "Satpur, Nashik",
-          "Adgaon, Nashik",
-          "Makhmalabad, Nashik",
-          "Nashik Road",
-          "Pathardi Phata, Nashik",
-          "Dwarka, Nashik",
-          "Ambad, Nashik",
-      ],
-      "Sinnar": [
-          "Pune Road, Sinnar",
-          "Main Bazar, Sinnar",
-          "MIDC Sinnar",
-          "Deolali Camp Road, Sinnar",
-          "Shirdi Road, Sinnar",
-      ],
-      "Malegaon": [
-          "Camp Road, Malegaon",
-          "Kidwai Road, Malegaon",
-          "Main Road, Malegaon",
-          "Sangmeshwar, Malegaon",
-          "Soygaon, Malegaon",
-          "Azad Nagar, Malegaon",
-      ],
-      "Niphad": [
-          "Niphad City",
-          "Pimpalgaon Baswant",
-          "Lasalgaon",
-          "Khedle Khede",
-          "Saykheda",
-      ],
-      "Yeola": [
-          "Vinchur Road, Yeola",
-          "Main Bazar, Yeola",
-          "Station Road, Yeola",
-          "Andarsul, Yeola",
-      ],
-      "Dindori": ["Dindori City", "Vani", "Khedgaon", "Peth Road Dindori"],
-      "Igatpuri": [
-          "Station Road, Igatpuri",
-          "Mumbai-Nashik Highway, Igatpuri",
-          "Ghoti Budruk",
-      ],
-      "Trimbakeshwar": [
-          "Trimbak City",
-          "Shrimantha Baji Rao Road, Trimbakeshwar",
-          "Harshul",
-      ],
-      "Kalwan": ["Kalwan City", "Meshi", "Konal"],
-      "Deola": ["Deola City", "Wakhari", "Bhadwan"],
-      "Surgana": ["Surgana City", "Borro"],
-      "Peth": ["Peth City", "Devali"],
-      "Baglan (Satana)": ["Satana City", "Taharat", "Arai"],
-  }
-
-  district_input = st.sidebar.selectbox(
-      "१. जिल्हा निवडा (District)", ["Nashik District"]
-  )
-  selected_taluka = st.sidebar.selectbox(
-      "२. तालुका निवडा (Taluka)", list(nashik_district_data.keys())
-  )
-  selected_area = st.sidebar.selectbox(
-      "३. विशिष्ट एरिया निवडा (Area/Locality)",
-      nashik_district_data[selected_taluka],
-  )
-  category_input = st.sidebar.selectbox(
-      "४. कॅटेगरी निवडा (Category)",
-      [
-          "Cafe",
-          "Restaurant",
-          "Gym",
-          "Salon",
-          "Beauty Parlour",
-          "Clothing Store",
-          "Coaching Classes",
-          "Bakery",
-          "Hardware Store",
-          "Medical Store",
-          "Mobile Shop",
-      ],
-  )
-  pitch_language = st.sidebar.selectbox(
-      "🌐 पिचची भाषा निवडा (Pitch Language)",
-      ["Marathi (मराठी)", "Hindi (हिंदी)", "English"],
-  )
-
-  # ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
-  st.sidebar.markdown("---")
-  st.sidebar.subheader("👑 King of the Day / Streak Tracker")
-
-  cursor.execute("SELECT member_name, leads, pitches, streak, worked_today FROM team_activity")
-  db_team_data = cursor.fetchall()
-  
-  team_scores = {}
-  for member, l_count, p_count, streak, w_today in db_team_data:
-    team_scores[member] = {"leads": l_count, "pitches": p_count, "streak": streak, "worked_today": w_today}
-
-  sorted_team = sorted(
-      team_scores.items(),
-      key=lambda x: x[1]["pitches"] + x[1]["leads"],
-      reverse=True,
-  )
-  if sorted_team:
-    king_name, king_stats = sorted_team[0]
-    total_king_score = king_stats['pitches'] + king_stats['leads']
-    st.sidebar.markdown(f"""
-    <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-        <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
-        <p style="color: #fff; margin: 0; font-size: 13px;">(Total Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-  curr_user_name = st.session_state["display_name"]
-  
-  cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
-  if not cursor.fetchone():
-    cursor.execute("INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
-                   (curr_user_name, 0, 0, 1, today_str, 0))
-    conn.commit()
-
-  cursor.execute("SELECT worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
-  user_w_row = cursor.fetchone()
-  current_user_worked = user_w_row[0] if user_w_row else 0
-  current_user_streak = user_w_row[1] if user_w_row else 1
-
-  if current_user_worked == 0:
-    if st.sidebar.button("🔥 I'm doing my work today"):
-      new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
-      cursor.execute("UPDATE team_activity SET worked_today = 1, streak = ? WHERE member_name = ?", (new_streak, curr_user_name))
-      conn.commit()
-      st.success("✅ Attendance marked and Streak updated for today!")
-      st.rerun()
-
-  if st.session_state["role"] == "Admin":
-    st.sidebar.write("---")
-    st.sidebar.write("👑 **CEO Master Team Tracker:**")
-    for member, stats in team_scores.items():
-      emoji_class = "active-streak" if stats["worked_today"] == 1 else "inactive-streak"
-      st.sidebar.markdown(
-          f"""<div class="{emoji_class}">🔥 <b>{member}</b></div>
-          🎯 Leads: `{stats['leads']}` | 💬 Pitches: `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
-          unsafe_allow_html=True,
-      )
-  else:
-    my_stats = team_scores.get(curr_user_name, {"leads": 0, "pitches": 0, "streak": 1, "worked_today": 0})
-    emoji_class = "active-streak" if my_stats["worked_today"] == 1 else "inactive-streak"
-    
-    st.sidebar.markdown(f"""<div class="{emoji_class}" style="font-size: 24px;">🔥 Daily Streak</div>""", unsafe_allow_html=True)
-    st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
-    st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
-    st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
-
-  secret_key = st.secrets.get("GOOGLE_API_KEY", "")
-  if not secret_key:
-    api_key = st.sidebar.text_input(
-        "🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक"
-    )
-  else:
-    api_key = secret_key
-
-
-  def fetch_strict_area_places(taluka, area, category, key):
-    if not key:
-      st.error("⚠️ Google API Key सापडली नाही!")
-      return pd.DataFrame()
-
-    url = "https://places.googleapis.com/v1/places:searchText"
-    headers = {
-        "Content-Type": "json",
-        "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": (
-            "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating"
-        ),
+    nashik_district_data = {
+        "Chandwad": [
+            "Bus Stand Area, Chandwad",
+            "Main Market, Chandwad",
+            "Manmath Nagar, Chandwad",
+            "Dhawkhar Nagar, Chandwad",
+            "Deola Road, Chandwad",
+            "Rajendra Nagar, Chandwad",
+            "Station Road, Chandwad",
+            "Vinchur Road, Chandwad",
+        ],
+        "Nashik": [
+            "College Road, Nashik",
+            "Gangapur Road, Nashik",
+            "Cidco, Nashik",
+            "Indiranagar, Nashik",
+            "Panchavati, Nashik",
+            "Satpur, Nashik",
+            "Adgaon, Nashik",
+            "Makhmalabad, Nashik",
+            "Nashik Road",
+            "Pathardi Phata, Nashik",
+            "Dwarka, Nashik",
+            "Ambad, Nashik",
+        ],
+        "Sinnar": [
+            "Pune Road, Sinnar",
+            "Main Bazar, Sinnar",
+            "MIDC Sinnar",
+            "Deolali Camp Road, Sinnar",
+            "Shirdi Road, Sinnar",
+        ],
+        "Malegaon": [
+            "Camp Road, Malegaon",
+            "Kidwai Road, Malegaon",
+            "Main Road, Malegaon",
+            "Sangmeshwar, Malegaon",
+            "Soygaon, Malegaon",
+            "Azad Nagar, Malegaon",
+        ],
+        "Niphad": [
+            "Niphad City",
+            "Pimpalgaon Baswant",
+            "Lasalgaon",
+            "Khedle Khede",
+            "Saykheda",
+        ],
+        "Yeola": [
+            "Vinchur Road, Yeola",
+            "Main Bazar, Yeola",
+            "Station Road, Yeola",
+            "Andarsul, Yeola",
+        ],
+        "Dindori": ["Dindori City", "Vani", "Khedgaon", "Peth Road Dindori"],
+        "Igatpuri": [
+            "Station Road, Igatpuri",
+            "Mumbai-Nashik Highway, Igatpuri",
+            "Ghoti Budruk",
+        ],
+        "Trimbakeshwar": [
+            "Trimbak City",
+            "Shrimantha Baji Rao Road, Trimbakeshwar",
+            "Harshul",
+        ],
+        "Kalwan": ["Kalwan City", "Meshi", "Konal"],
+        "Deola": ["Deola City", "Wakhari", "Bhadwan"],
+        "Surgana": ["Surgana City", "Borro"],
+        "Peth": ["Peth City", "Devali"],
+        "Baglan (Satana)": ["Satana City", "Taharat", "Arai"],
     }
-    search_query = f"{category} in {area}, {taluka}, Nashik, Maharashtra"
-    payload = {"textQuery": search_query, "maxResultCount": 20}
 
-    try:
-      response = requests.post(url, headers=headers, json=payload)
-      data = response.json()
-
-      if "error" in data:
-        st.error(f"❌ Google API Error: {data['error'].get('message')}")
-        return pd.DataFrame()
-
-      places = data.get("places", [])
-      businesses = []
-
-      for place in places:
-        name = place.get("displayName", {}).get("text", "Unknown Business")
-        address = place.get("formattedAddress", "")
-        phone = place.get("nationalPhoneNumber", "919876543210")
-        clean_phone = "".join(filter(str.isdigit, str(phone)))
-        if len(clean_phone) < 10:
-          clean_phone = "919876543210"
-        elif not clean_phone.startswith("91"):
-          clean_phone = "91" + clean_phone[-10:]
-
-        rating = place.get("rating", 4.0)
-        if rating == "N/A":
-          rating = 4.0
-
-        ai_score = (
-            "🔥 High Priority (Hot)" if float(rating) >= 4.0 else "⚡ Standard"
-        )
-
-        businesses.append({
-            "District": "Nashik",
-            "Taluka": taluka,
-            "Area": area,
-            "Category": category,
-            "Business Name": name,
-            "Address": address,
-            "Phone": clean_phone,
-            "Rating": rating,
-            "AI Score": ai_score,
-            "Last Post": str(
-                datetime.date.today() - datetime.timedelta(days=16)
-            ),
-            "Status": "HOT",
-        })
-
-      return pd.DataFrame(businesses)
-    except Exception as e:
-      st.error(f"❌ Connection Error: {str(e)}")
-      return pd.DataFrame()
-
-
-  if st.sidebar.button("🎯 Hunt District Leads Now"):
-    with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
-      df = fetch_strict_area_places(
-          selected_taluka, selected_area, category_input, api_key
-      )
-      st.session_state["leads_data"] = df
-
-      curr_user = st.session_state["display_name"]
-      cursor.execute("SELECT leads FROM team_activity WHERE member_name = ?", (curr_user,))
-      res = cursor.fetchone()
-      current_leads_db = res[0] if res else 0
-      new_leads_count = current_leads_db + len(df)
-      
-      cursor.execute("UPDATE team_activity SET leads = ? WHERE member_name = ?", (new_leads_count, curr_user))
-      conn.commit()
-      st.success(f"✅ {len(df)} leads successfully added to your count!")
-      st.rerun()
-
-  if "leads_data" in st.session_state and not st.session_state[
-      "leads_data"
-  ].empty:
-    df = st.session_state["leads_data"]
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Total Businesses Found", len(df))
-    hot_count = len(df[df["AI Score"].str.contains("High Priority")])
-    col2.metric("🔥 AI High Priority Clients", hot_count)
-    col3.metric("Target Area", selected_area)
-
-    cursor.execute("SELECT business_name, status, remark FROM followups")
-    db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
-
-    export_df = df.copy()
-    export_df["Follow-up Status"] = export_df["Business Name"].apply(
-        lambda x: db_followups.get(x, {}).get("status", "New Lead")
+    district_input = st.sidebar.selectbox("१. जिल्हा निवडा (District)", ["Nashik District"])
+    selected_taluka = st.sidebar.selectbox("२. तालुका निवडा (Taluka)", list(nashik_district_data.keys()))
+    selected_area = st.sidebar.selectbox("३. विशिष्ट एरिया निवडा (Area/Locality)", nashik_district_data[selected_taluka])
+    category_input = st.sidebar.selectbox(
+        "४. कॅटेगरी निवडा (Category)",
+        [
+            "Cafe",
+            "Restaurant",
+            "Gym",
+            "Salon",
+            "Beauty Parlour",
+            "Clothing Store",
+            "Coaching Classes",
+            "Bakery",
+            "Hardware Store",
+            "Medical Store",
+            "Mobile Shop",
+        ],
     )
-    export_df["Remarks / Notes"] = export_df["Business Name"].apply(
-        lambda x: db_followups.get(x, {}).get("remark", "")
-    )
+    pitch_language = st.sidebar.selectbox("🌐 पिचची भाषा निवडा (Pitch Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
 
+    # ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
     st.sidebar.markdown("---")
-    st.sidebar.download_button(
-        label="📥 Export Leads & Follow-up History (CSV)",
-        data=export_df.to_csv(index=False),
-        file_name=(
-            f"THE_AK_MEDIA_Followups_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv"
-        ),
-        mime="text/csv",
+    st.sidebar.subheader("👑 King of the Day / Streak Tracker")
+
+    cursor.execute("SELECT member_name, leads, pitches, streak, worked_today FROM team_activity")
+    db_team_data = cursor.fetchall()
+    
+    team_scores = {}
+    for member, l_count, p_count, streak, w_today in db_team_data:
+        team_scores[member] = {"leads": l_count, "pitches": p_count, "streak": streak, "worked_today": w_today}
+
+    sorted_team = sorted(
+        team_scores.items(),
+        key=lambda x: x[1]["pitches"] + x[1]["leads"],
+        reverse=True,
     )
+    if sorted_team:
+        king_name, king_stats = sorted_team[0]
+        total_king_score = king_stats['pitches'] + king_stats['leads']
+        st.sidebar.markdown(f"""
+        <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+            <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
+            <p style="color: #fff; margin: 0; font-size: 13px;">(Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.subheader(
-        f"📋 Client Lead Board & AI Scoring — {selected_area}, {selected_taluka}"
-        f" ({category_input})"
-    )
+    curr_user_name = st.session_state["display_name"]
+    
+    cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
+    if not cursor.fetchone():
+        cursor.execute("INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+                       (curr_user_name, 0, 0, 1, today_str, 0))
+        conn.commit()
 
-    for idx, row in df.iterrows():
-      with st.container():
-        c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
-        c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
-        c2.write(
-            f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}\n🤖 {row['AI Score']}"
-        )
-        c3.write(f"📅 Last Post: {row['Last Post']}")
-        c4.error(f"🔥 {row['Status']}")
+    cursor.execute("SELECT worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
+    user_w_row = cursor.fetchone()
+    current_user_worked = user_w_row[0] if user_w_row else 0
+    current_user_streak = user_w_row[1] if user_w_row else 1
 
-        if "Marathi" in pitch_language:
-          pitch_msg = (
-              f"नमस्कार {row['Business Name']},\n\nमी THE AK MEDIA (नाशिक) वरून"
-              " बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५"
-              " दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश"
-              f" कस्टमर्स ऑनलाइन शोधूनच {row['Category']} मध्ये येतात."
-              " सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने संभाव्य ग्राहक प्रतिस्पर्ध्यांकडे"
-              " जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील व्यवसायांचे ब्रँडिंग आणि"
-              " सोशल मीडिया मॅनेज करतो. तुमच्या पेजचा मोफत सोशल मीडिया ऑडिट रिपोर्ट"
-              " हवा असल्यास नक्की कळवा!"
-          )
-        elif "Hindi" in pitch_language:
-          pitch_msg = (
-              f"नमस्ते {row['Business Name']},\n\nमैं THE AK MEDIA (नाशिक) से"
-              " बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से"
-              " कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके"
-              f" ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स"
-              " छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल"
-              " मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट"
-              " भेज दें?"
-          )
-        else:
-          pitch_msg = (
-              f"Hi {row['Business Name']},\n\nI'm reaching out from THE AK MEDIA"
-              " Nashik. I noticed that your social media handles haven't been"
-              " active recently.\n\nMost customers nowadays check social media"
-              f" presence before visiting a {row['Category']}. Maintaining an"
-              " active online presence helps attract new clients regularly.\n\nWe"
-              " manage end-to-end digital branding for businesses across Nashik."
-              " Would you like a Free Social Media Audit report for your page?"
-          )
-
-        encoded_msg = urllib.parse.quote(pitch_msg)
-        wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
-        call_url = f'tel:{row["Phone"]}'
-
-        # FIX: Direct standard HTML anchor tags for Call and WhatsApp without meta-refresh redirects
-        action_html = f"""
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <a href="{call_url}" target="_blank" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
-                    <a href="{wa_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;"><button style="background-color:#25D366; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
-                </div>
-                """
-        c5.markdown(action_html, unsafe_allow_html=True)
-
-        bname = row["Business Name"]
-        cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
-        f_data = cursor.fetchone()
-        current_f_status = f_data[0] if f_data else "New Lead"
-        current_f_remark = f_data[1] if f_data else ""
-
-        with st.expander(f"📝 Follow-up Status & Remarks ({bname})"):
-          status_options = [
-              "New Lead",
-              "Called - Interested",
-              "Meeting Scheduled",
-              "Audit Report Sent",
-              "Converted",
-              "Not Responding",
-          ]
-          default_idx = status_options.index(current_f_status) if current_f_status in status_options else 0
-
-          f_status = st.selectbox(
-              "Select Status",
-              status_options,
-              index=default_idx,
-              key=f"status_{idx}",
-          )
-          f_remark = st.text_input(
-              "Add Remark / Notes", value=current_f_remark, key=f"remark_{idx}"
-          )
-          if st.button("💾 Save Status", key=f"save_{idx}"):
-            cursor.execute("""
-                INSERT INTO followups (business_name, status, remark) 
-                VALUES (?, ?, ?) 
-                ON CONFLICT(business_name) 
-                DO UPDATE SET status = ?, remark = ?
-            """, (bname, f_status, f_remark, f_status, f_remark))
+    if current_user_worked == 0:
+        if st.sidebar.button("🔥 I'm doing my work today"):
+            new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
+            cursor.execute("UPDATE team_activity SET worked_today = 1, streak = ? WHERE member_name = ?", (new_streak, curr_user_name))
             conn.commit()
-            st.success("✅ Saved to database permanently!")
+            st.success("✅ Attendance marked and Streak updated for today!")
+            st.rerun()
 
-        if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
-          st.session_state["active_audit_lead"] = row.to_dict()
-          st.session_state["selected_page"] = "Audit Report View"
-          curr_user = st.session_state["display_name"]
-          
-          cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-          p_res = cursor.fetchone()
-          current_p_db = p_res[0] if p_res else 0
-          cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (current_p_db + 1, curr_user))
-          conn.commit()
-          st.rerun()
+    if st.session_state["role"] == "Admin":
+        st.sidebar.write("---")
+        st.sidebar.write("👑 **CEO Master Team Tracker:**")
+        for member, stats in team_scores.items():
+            emoji_class = "active-streak" if stats["worked_today"] == 1 else "inactive-streak"
+            st.sidebar.markdown(
+                f"""<div class="{emoji_class}">🔥 <b>{member}</b></div>
+                🎯 Leads: `{stats['leads']}` | 💬 Pitches: `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
+                unsafe_allow_html=True,
+            )
+    else:
+        my_stats = team_scores.get(curr_user_name, {"leads": 0, "pitches": 0, "streak": 1, "worked_today": 0})
+        emoji_class = "active-streak" if my_stats["worked_today"] == 1 else "inactive-streak"
+        
+        st.sidebar.markdown(f"""<div class="{emoji_class}" style="font-size: 24px;">🔥 Daily Streak</div>""", unsafe_allow_html=True)
+        st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
+        st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
+        st.sidebar.metric("Pitches Sent By Me", my_stats["pitches"])
 
-        st.markdown(
-            "<hr style='margin:8px 0; border-color:#333;'/>",
-            unsafe_allow_html=True,
+    secret_key = st.secrets.get("GOOGLE_API_KEY", "")
+    if not secret_key:
+        api_key = st.sidebar.text_input("🔑 Google API Key टाका", type="password", help="इथे तुझी API Key टाक")
+    else:
+        api_key = secret_key
+
+    def fetch_strict_area_places(taluka, area, category, key):
+        if not key:
+            st.error("⚠️ Google API Key सापडली नाही!")
+            return pd.DataFrame()
+
+        url = "https://places.googleapis.com/v1/places:searchText"
+        headers = {
+            "Content-Type": "json",
+            "X-Goog-Api-Key": key,
+            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating",
+        }
+        search_query = f"{category} in {area}, {taluka}, Nashik, Maharashtra"
+        payload = {"textQuery": search_query, "maxResultCount": 20}
+
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            data = response.json()
+
+            if "error" in data:
+                st.error(f"❌ Google API Error: {data['error'].get('message')}")
+                return pd.DataFrame()
+
+            places = data.get("places", [])
+            businesses = []
+
+            for place in places:
+                name = place.get("displayName", {}).get("text", "Unknown Business")
+                address = place.get("formattedAddress", "")
+                phone = place.get("nationalPhoneNumber", "919876543210")
+                clean_phone = "".join(filter(str.isdigit, str(phone)))
+                if len(clean_phone) < 10:
+                    clean_phone = "919876543210"
+                elif not clean_phone.startswith("91"):
+                    clean_phone = "91" + clean_phone[-10:]
+
+                rating = place.get("rating", 4.0)
+                if rating == "N/A":
+                    rating = 4.0
+
+                ai_score = "🔥 High Priority (Hot)" if float(rating) >= 4.0 else "⚡ Standard"
+
+                businesses.append({
+                    "District": "Nashik",
+                    "Taluka": taluka,
+                    "Area": area,
+                    "Category": category,
+                    "Business Name": name,
+                    "Address": address,
+                    "Phone": clean_phone,
+                    "Rating": rating,
+                    "AI Score": ai_score,
+                    "Last Post": str(datetime.date.today() - datetime.timedelta(days=16)),
+                    "Status": "HOT",
+                })
+
+            return pd.DataFrame(businesses)
+        except Exception as e:
+            st.error(f"❌ Connection Error: {str(e)}")
+            return pd.DataFrame()
+
+    if st.sidebar.button("🎯 Hunt District Leads Now"):
+        with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
+            df = fetch_strict_area_places(selected_taluka, selected_area, category_input, api_key)
+            st.session_state["leads_data"] = df
+
+            curr_user = st.session_state["display_name"]
+            cursor.execute("SELECT leads FROM team_activity WHERE member_name = ?", (curr_user,))
+            res = cursor.fetchone()
+            current_leads_db = res[0] if res else 0
+            new_leads_count = current_leads_db + len(df)
+            
+            cursor.execute("UPDATE team_activity SET leads = ? WHERE member_name = ?", (new_leads_count, curr_user))
+            conn.commit()
+            st.success(f"✅ {len(df)} leads successfully added to your count!")
+            st.rerun()
+
+    if "leads_data" in st.session_state and not st.session_state["leads_data"].empty:
+        df = st.session_state["leads_data"]
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Businesses Found", len(df))
+        hot_count = len(df[df["AI Score"].str.contains("High Priority")])
+        col2.metric("🔥 AI High Priority Clients", hot_count)
+        col3.metric("Target Area", selected_area)
+
+        cursor.execute("SELECT business_name, status, remark FROM followups")
+        db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
+
+        export_df = df.copy()
+        export_df["Follow-up Status"] = export_df["Business Name"].apply(lambda x: db_followups.get(x, {}).get("status", "New Lead"))
+        export_df["Remarks / Notes"] = export_df["Business Name"].apply(lambda x: db_followups.get(x, {}).get("remark", ""))
+
+        st.sidebar.markdown("---")
+        st.sidebar.download_button(
+            label="📥 Export Leads & Follow-up History (CSV)",
+            data=export_df.to_csv(index=False),
+            file_name=f"THE_AK_MEDIA_Followups_{selected_taluka}_{selected_area}_{datetime.date.today()}.csv",
+            mime="text/csv",
         )
-  else:
-    st.info(
-        "👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District"
-        " Leads Now'** बटणावर क्लिक करा!"
-    )
+
+        st.markdown("---")
+        st.subheader(f"📋 Client Lead Board & AI Scoring — {selected_area}, {selected_taluka} ({category_input})")
+
+        for idx, row in df.iterrows():
+            with st.container():
+                c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
+                c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
+                c2.write(f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}\n🤖 {row['AI Score']}")
+                c3.write(f"📅 Last Post: {row['Last Post']}")
+                c4.error(f"🔥 {row['Status']}")
+
+                if "Marathi" in pitch_language:
+                    pitch_msg = (
+                        f"नमस्कार {row['Business Name']},\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५ दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश कस्टमर्स ऑनलाइन शोधूनच {row['Category']} मध्ये येतात. सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने संभाव्य ग्राहक प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील व्यवसायांचे ब्रँडिंग आणि सोशल मीडिया मॅनेज करतो. तुमच्या पेजचा मोफत सोशल मीडिया ऑडिट रिपोर्ट हवा असल्यास नक्की कळवा!"
+                    )
+                elif "Hindi" in pitch_language:
+                    pitch_msg = (
+                        f"नमस्ते {row['Business Name']},\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट भेज दें?"
+                    )
+                else:
+                    pitch_msg = (
+                        f"Hi {row['Business Name']},\n\nI'm reaching out from THE AK MEDIA Nashik. I noticed that your social media handles haven't been active recently.\n\nMost customers nowadays check social media presence before visiting a {row['Category']}. Maintaining an active online presence helps attract new clients regularly.\n\nWe manage end-to-end digital branding for businesses across Nashik. Would you like a Free Social Media Audit report for your page?"
+                    )
+
+                encoded_msg = urllib.parse.quote(pitch_msg)
+                wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
+                call_url = f'tel:{row["Phone"]}'
+
+                # PERFECT PITCH INCREMENT & SAFE REDIRECT
+                act_c1, act_c2 = c5.columns(2)
+                with act_c1:
+                    if st.button(f"📞 Call", key=f"call_btn_{idx}"):
+                        curr_user = st.session_state["display_name"]
+                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                        p_res = cursor.fetchone()
+                        curr_p = p_res[0] if p_res else 0
+                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+                        conn.commit()
+                        st.markdown(f'<script>window.open("{call_url}", "_blank");</script>', unsafe_allow_html=True)
+                        st.rerun()
+
+                with act_c2:
+                    if st.button(f"📲 WhatsApp", key=f"wa_btn_{idx}"):
+                        curr_user = st.session_state["display_name"]
+                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                        p_res = cursor.fetchone()
+                        curr_p = p_res[0] if p_res else 0
+                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+                        conn.commit()
+                        st.markdown(f'<script>window.open("{wa_url}", "_blank");</script>', unsafe_allow_html=True)
+                        st.rerun()
+
+                bname = row["Business Name"]
+                cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
+                f_data = cursor.fetchone()
+                current_f_status = f_data[0] if f_data else "New Lead"
+                current_f_remark = f_data[1] if f_data else ""
+
+                with st.expander(f"📝 Follow-up Status & Remarks ({bname})"):
+                    status_options = [
+                        "New Lead",
+                        "Called - Interested",
+                        "Meeting Scheduled",
+                        "Audit Report Sent",
+                        "Converted",
+                        "Not Responding",
+                    ]
+                    default_idx = status_options.index(current_f_status) if current_f_status in status_options else 0
+
+                    f_status = st.selectbox("Select Status", status_options, index=default_idx, key=f"status_{idx}")
+                    f_remark = st.text_input("Add Remark / Notes", value=current_f_remark, key=f"remark_{idx}")
+                    if st.button("💾 Save Status", key=f"save_{idx}"):
+                        cursor.execute("""
+                            INSERT INTO followups (business_name, status, remark) 
+                            VALUES (?, ?, ?) 
+                            ON CONFLICT(business_name) 
+                            DO UPDATE SET status = ?, remark = ?
+                        """, (bname, f_status, f_remark, f_status, f_remark))
+                        conn.commit()
+                        st.success("✅ Saved to database permanently!")
+
+                if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
+                    st.session_state["active_audit_lead"] = row.to_dict()
+                    st.session_state["selected_page"] = "Audit Report View"
+                    curr_user = st.session_state["display_name"]
+                    
+                    cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                    p_res = cursor.fetchone()
+                    current_p_db = p_res[0] if p_res else 0
+                    cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (current_p_db + 1, curr_user))
+                    conn.commit()
+                    st.rerun()
+
+                st.markdown("<hr style='margin:8px 0; border-color:#333;'/>", unsafe_allow_html=True)
+    else:
+        st.info("👈 डाव्या बाजूला जिल्हा, तालुका, एरिया आणि कॅटेगरी निवडून **'Hunt District Leads Now'** बटणावर क्लिक करा!")
 
 # ==================== PAGE 2: DEDICATED PRINT-READY AUDIT REPORT SCREEN ====================
 elif st.session_state["selected_page"] == "Audit Report View":
-  if st.session_state["active_audit_lead"] is None:
-    st.warning(
-        "⚠️ कोणतीही लीड निवडलेली नाही. कृपया डॅशबोर्डवर जाऊन कोणत्याही क्लायंटच्या"
-        " समोर दिलेल्या **'Open Print-Ready Report'** बटणावर क्लिक करा."
-    )
-    if st.button("⬅️ Back to Dashboard"):
-      st.session_state["selected_page"] = "Lead Hunter Dashboard"
-      st.rerun()
-  else:
-    lead = st.session_state["active_audit_lead"]
+    if st.session_state["active_audit_lead"] is None:
+        st.warning("⚠️ कोणतीही लीड निवडलेली नाही. कृपया डॅशबोर्डवर जाऊन कोणत्याही क्लायंटच्या समोर दिलेल्या **'Open Print-Ready Report'** बटणावर क्लिक करा.")
+        if st.button("⬅️ Back to Dashboard"):
+            st.session_state["selected_page"] = "Lead Hunter Dashboard"
+            st.rerun()
+    else:
+        lead = st.session_state["active_audit_lead"]
 
-    if st.button("⬅️ Back to Lead Dashboard"):
-      st.session_state["selected_page"] = "Lead Hunter Dashboard"
-      st.rerun()
+        if st.button("⬅️ Back to Lead Dashboard"):
+            st.session_state["selected_page"] = "Lead Hunter Dashboard"
+            st.rerun()
 
-    st.markdown("---")
+        st.markdown("---")
 
-    printable_report_html = f"""
+        printable_report_html = f"""
         <div style="background-color: white; color: black; padding: 40px; border-radius: 10px; font-family: 'Helvetica', sans-serif; border: 2px solid #D4AF37; max-width: 800px; margin: auto;">
             <div style="text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 15px; margin-bottom: 25px;">
                 <h2 style="color: #0b0b0b; margin: 0; font-size: 26px; letter-spacing: 1.5px;">THE AK MEDIA</h2>
@@ -1172,14 +952,9 @@ elif st.session_state["selected_page"] == "Audit Report View":
         </div>
         """
 
-    st.markdown(printable_report_html, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.info(
-        "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
-        "लॅपटॉपवर असताना फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
-        " निवडा!"
-    )
+        st.markdown(printable_report_html, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.info("💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\nलॅपटॉपवर फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'** निवडा!")
 
 # ==================== FORMAL FOOTER ====================
 st.markdown(
