@@ -40,7 +40,6 @@ def init_db():
   conn = sqlite3.connect("ak_media.db", check_same_thread=False)
   cursor = conn.cursor()
   
-  # Table for Follow-ups and Remarks
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
@@ -49,7 +48,6 @@ def init_db():
         )
     """)
   
-  # Table for Team Activity
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
@@ -69,7 +67,6 @@ cursor = conn.cursor()
 today_str = str(datetime.date.today())
 yesterday_str = str(datetime.date.today() - datetime.timedelta(days=1))
 
-# Initialize Default Team Members with Zero-Tolerance Genuine Logic
 default_team = {
     "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 1},
     "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 1},
@@ -86,22 +83,18 @@ for member, stats in default_team.items():
     )
 conn.commit()
 
-# ==================== STREAK & DATE CHECK LOGIC (GENUINE RESET) ====================
+# ==================== STREAK & DATE CHECK LOGIC ====================
 cursor.execute("SELECT member_name, last_active_date, worked_today, streak FROM team_activity")
 all_members = cursor.fetchall()
 
 for mem_name, last_dt, w_today, current_streak in all_members:
   if last_dt != today_str:
-    # If the user didn't work yesterday/past days and day changed, check if reset is needed
     if last_dt == yesterday_str:
       if w_today == 0:
-        # Missed yesterday -> Reset streak to 0
         cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
       else:
-        # Worked yesterday, reset daily attendance flag for today but maintain streak
         cursor.execute("UPDATE team_activity SET worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
     else:
-      # Missed multiple days -> Reset streak to 0
       cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
 conn.commit()
 
@@ -798,13 +791,12 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     st.sidebar.markdown(f"""
     <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
         <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
-        <p style="color: #fff; margin: 0; font-size: 13px;">(Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
+        <p style="color: #fff; margin: 0; font-size: 13px;">(Total Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
     </div>
     """, unsafe_allow_html=True)
 
   curr_user_name = st.session_state["display_name"]
   
-  # Ensure current user exists in database
   cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
   if not cursor.fetchone():
     cursor.execute("INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
@@ -1021,31 +1013,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
         call_url = f'tel:{row["Phone"]}'
 
-        # FIX: Added form/button triggers to securely increment Pitch counts when WhatsApp or Call buttons are clicked
-        action_col1, action_col2, action_col3 = st.columns([1, 1, 1])
-        with action_col1:
-          if st.button(f"📞 Call", key=f"call_{idx}"):
-            curr_user = st.session_state["display_name"]
-            cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-            p_res = cursor.fetchone()
-            curr_p = p_res[0] if p_res else 0
-            cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-            conn.commit()
-            st.markdown(f'<meta http-equiv="refresh" content="0;url={call_url}">', unsafe_allow_html=True)
-            st.rerun()
-        with action_col2:
-          if st.button(f"📲 WhatsApp", key=f"wa_{idx}"):
-            curr_user = st.session_state["display_name"]
-            cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-            p_res = cursor.fetchone()
-            curr_p = p_res[0] if p_res else 0
-            cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-            conn.commit()
-            encoded_msg = urllib.parse.quote(pitch_msg)
-        wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
-        call_url = f'tel:{row["Phone"]}'
-
-        # FIX: Replaced meta-refresh trick with direct target="_blank" HTML anchor links to prevent "refused to connect" error on both Mobile & Laptop
+        # FIX: Direct standard HTML anchor tags for Call and WhatsApp without meta-refresh redirects
         action_html = f"""
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <a href="{call_url}" target="_blank" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
@@ -1053,7 +1021,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 </div>
                 """
         c5.markdown(action_html, unsafe_allow_html=True)
-            st.rerun()
 
         bname = row["Business Name"]
         cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
@@ -1091,7 +1058,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             conn.commit()
             st.success("✅ Saved to database permanently!")
 
-        if st.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
+        if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
           st.session_state["active_audit_lead"] = row.to_dict()
           st.session_state["selected_page"] = "Audit Report View"
           curr_user = st.session_state["display_name"]
