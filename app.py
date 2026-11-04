@@ -1041,7 +1041,18 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             curr_p = p_res[0] if p_res else 0
             cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
             conn.commit()
-            st.markdown(f'<meta http-equiv="refresh" content="0;url={wa_url}">', unsafe_allow_html=True)
+            encoded_msg = urllib.parse.quote(pitch_msg)
+        wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
+        call_url = f'tel:{row["Phone"]}'
+
+        # FIX: Replaced meta-refresh trick with direct target="_blank" HTML anchor links to prevent "refused to connect" error on both Mobile & Laptop
+        action_html = f"""
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="{call_url}" target="_blank" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
+                    <a href="{wa_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;"><button style="background-color:#25D366; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
+                </div>
+                """
+        c5.markdown(action_html, unsafe_allow_html=True)
             st.rerun()
 
         bname = row["Business Name"]
