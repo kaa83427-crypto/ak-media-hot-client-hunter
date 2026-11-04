@@ -83,6 +83,25 @@ for member, stats in default_team.items():
         )
 conn.commit()
 
+# Query parameters handling for direct link pitch registration (Anti-Cheating Fix)
+query_params = st.query_params
+if "action" in query_params and "user" in query_params:
+    action_type = query_params["action"]
+    target_user = query_params["user"]
+    redirect_target = query_params.get("target", "")
+    
+    cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (target_user,))
+    p_res = cursor.fetchone()
+    curr_p = p_res[0] if p_res else 0
+    cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, target_user))
+    conn.commit()
+    
+    # Clear query params and redirect directly
+    st.query_params.clear()
+    if redirect_target:
+        st.markdown(f'<meta http-equiv="refresh" content="0;url={redirect_target}">', unsafe_allow_html=True)
+        st.stop()
+
 # ==================== STREAK & DATE CHECK LOGIC ====================
 cursor.execute("SELECT member_name, last_active_date, worked_today, streak FROM team_activity")
 all_members = cursor.fetchall()
@@ -477,7 +496,7 @@ elif st.session_state["selected_page"] == "Message Library":
             st.code("हाय [Business Name],\n\nTHE AK MEDIA (नाशिक) से संपर्क कर रहे हैं. फिटनेस लवर्स हमेशा सोशल मीडिया पर नए ऑफर्स और वर्कआउट वीडियो खोजते रहते हैं. आपकी जिम का पेज फिलहाल इन-एक्टिव दिख रहा है.\n\nहम जिम ब्रांडिंग, एनर्जेटिक रील्स और लोकल लीड जनरेशन कैंपेन हैंडल करते हैं. क्या फ्री कंसल्टेशन चाहिए?", language="text")
         with tab3:
             st.subheader("🛍️ रिटेल / क्लोदिंग स्टोर - हिंदी पिच")
-            st.code("नमस्ते [Business Name],\n\nमैं THE AK MEDIA से बात कर रहा हूँ. आपके स्टोर की डिजिटल ब्रांडिंग बढ़ाने में हम मदद कर सकते हैं. फेस्टिवल ऑफर्स और नए स्टॉक का प्रमोशन सोशल मीडिया पर होना बहुत जरूरी है.\n\nहमारी डिजिटल सर्विसेज के बारे में जानकारी चाहिए क्या?", language="text")
+            st.code("नमस्ते [Business Name],\n\nमैं THE AK MEDIA से बात कर रहा हूँ. आपके स्टोर की डिजिटल ब्रांडिंग बढ़ाने में हम मदद कर सकते हैं. फेस्टिवल ऑफर्स और नए स्टॉक का प्रमोशन सोशल मीडिया पर होना बहुत जरूरी है.\n\nहमारी डिजिटल सर्विसेज के बारे बारे में जानकारी चाहिए क्या?", language="text")
 
     else:  # English
         with tab1:
@@ -592,7 +611,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             "Mobile Shop",
         ],
     )
-    pitch_language = st.sidebar.selectbox("🌐 पिचची भाषा निवडा (Pitch Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
+    pitch_language = st.sidebar.selectbox("🌐 pitch ची भाषा निवडा (Pitch Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
 
     # ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
     st.sidebar.markdown("---")
@@ -794,31 +813,18 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
                 call_url = f'tel:{row["Phone"]}'
 
-                # PERFECT PITCH INCREMENT & 100% WORKING SAFE HTML REDIRECT
-                act_c1, act_c2 = c5.columns(2)
-                with act_c1:
-                    if st.button(f"📞 Call", key=f"call_btn_{idx}"):
-                        curr_user = st.session_state["display_name"]
-                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-                        p_res = cursor.fetchone()
-                        curr_p = p_res[0] if p_res else 0
-                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-                        conn.commit()
-                        st.rerun()
-                    # Direct clickable link rendered right below/beside for instant opening
-                    st.markdown(f'<a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">🔗 Open Dialer</button></a>', unsafe_allow_html=True)
+                # ANTI-CHEATING FIXED DIRECT LINK BUTTONS
+                user_enc = urllib.parse.quote(st.session_state["display_name"])
+                wa_pitch_link = f"?action=pitch&user={user_enc}&target={urllib.parse.quote(wa_url)}"
+                call_pitch_link = f"?action=pitch&user={user_enc}&target={urllib.parse.quote(call_url)}"
 
-                with act_c2:
-                    if st.button(f"📲 WhatsApp", key=f"wa_btn_{idx}"):
-                        curr_user = st.session_state["display_name"]
-                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-                        p_res = cursor.fetchone()
-                        curr_p = p_res[0] if p_res else 0
-                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-                        conn.commit()
-                        st.rerun()
-                    # Direct secure anchor link to bypass browser block
-                    st.markdown(f'<a href="{wa_url}" target="_blank" rel="noopener noreferrer"><button style="background-color:#25D366; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">🔗 Open WA</button></a>', unsafe_allow_html=True)
+                action_html = f"""
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <a href="{call_pitch_link}" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
+                    <a href="{wa_pitch_link}" style="text-decoration: none;"><button style="background-color:#25D366; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
+                </div>
+                """
+                c5.markdown(action_html, unsafe_allow_html=True)
 
                 bname = row["Business Name"]
                 cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
