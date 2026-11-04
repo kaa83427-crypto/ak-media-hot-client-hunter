@@ -794,7 +794,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
                 call_url = f'tel:{row["Phone"]}'
 
-                # PERFECT PITCH INCREMENT & SAFE JS REDIRECT
+                # PERFECT PITCH INCREMENT & 100% WORKING SAFE HTML REDIRECT
                 act_c1, act_c2 = c5.columns(2)
                 with act_c1:
                     if st.button(f"📞 Call", key=f"call_btn_{idx}"):
@@ -804,8 +804,9 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                         curr_p = p_res[0] if p_res else 0
                         cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
                         conn.commit()
-                        # JavaScript direct redirect to bypass browser blocks
-                        st.markdown(f'<script>window.location.href = "{call_url}";</script>', unsafe_allow_html=True)
+                        st.rerun()
+                    # Direct clickable link rendered right below/beside for instant opening
+                    st.markdown(f'<a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">🔗 Open Dialer</button></a>', unsafe_allow_html=True)
 
                 with act_c2:
                     if st.button(f"📲 WhatsApp", key=f"wa_btn_{idx}"):
@@ -815,8 +816,9 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                         curr_p = p_res[0] if p_res else 0
                         cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
                         conn.commit()
-                        # JavaScript direct redirect for WhatsApp
-                        st.markdown(f'<script>window.location.href = "{wa_url}";</script>', unsafe_allow_html=True)
+                        st.rerun()
+                    # Direct secure anchor link to bypass browser block
+                    st.markdown(f'<a href="{wa_url}" target="_blank" rel="noopener noreferrer"><button style="background-color:#25D366; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">🔗 Open WA</button></a>', unsafe_allow_html=True)
 
                 bname = row["Business Name"]
                 cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
