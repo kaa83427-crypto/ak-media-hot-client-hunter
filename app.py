@@ -49,7 +49,7 @@ def init_db():
         )
     """)
   
-  # Table for Team Activity (Fixed: Removed DROP TABLE so data persists!)
+  # Table for Team Activity
   cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
@@ -67,18 +67,42 @@ conn = init_db()
 cursor = conn.cursor()
 
 today_str = str(datetime.date.today())
+yesterday_str = str(datetime.date.today() - datetime.timedelta(days=1))
 
+# Initialize Default Team Members with Zero-Tolerance Genuine Logic
 default_team = {
-    "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 5},
-    "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 3},
-    "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 4},
+    "MR.AK (Admin)": {"leads": 0, "pitches": 0, "streak": 1},
+    "Hari Shinde": {"leads": 0, "pitches": 0, "streak": 1},
+    "Somnath Pardhi": {"leads": 0, "pitches": 0, "streak": 1},
 }
 
 for member, stats in default_team.items():
-  cursor.execute(
-      "INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
-      (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0)
-  )
+  cursor.execute("SELECT last_active_date, worked_today, streak FROM team_activity WHERE member_name = ?", (member,))
+  row = cursor.fetchone()
+  if not row:
+    cursor.execute(
+        "INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+        (member, stats["leads"], stats["pitches"], stats["streak"], today_str, 0)
+    )
+conn.commit()
+
+# ==================== STREAK & DATE CHECK LOGIC (GENUINE RESET) ====================
+cursor.execute("SELECT member_name, last_active_date, worked_today, streak FROM team_activity")
+all_members = cursor.fetchall()
+
+for mem_name, last_dt, w_today, current_streak in all_members:
+  if last_dt != today_str:
+    # If the user didn't work yesterday/past days and day changed, check if reset is needed
+    if last_dt == yesterday_str:
+      if w_today == 0:
+        # Missed yesterday -> Reset streak to 0
+        cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+      else:
+        # Worked yesterday, reset daily attendance flag for today but maintain streak
+        cursor.execute("UPDATE team_activity SET worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+    else:
+      # Missed multiple days -> Reset streak to 0
+      cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
 conn.commit()
 
 # ==================== INITIALIZE SESSION STATE ====================
@@ -145,13 +169,6 @@ if not st.session_state["logged_in"]:
         st.session_state["username"] = input_user
         st.session_state["role"] = USERS_DB[input_user]["role"]
         st.session_state["display_name"] = USERS_DB[input_user]["name"]
-        
-        logged_name = USERS_DB[input_user]["name"]
-        cursor.execute("SELECT last_active_date FROM team_activity WHERE member_name = ?", (logged_name,))
-        row_dt = cursor.fetchone()
-        if row_dt and row_dt[0] != today_str:
-          cursor.execute("UPDATE team_activity SET last_active_date = ?, worked_today = 0 WHERE member_name = ?", (today_str, logged_name))
-          conn.commit()
 
         st.success(
             f"✅ Welcome back, {st.session_state['display_name']}! Loading"
@@ -781,7 +798,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     st.sidebar.markdown(f"""
     <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
         <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
-        <p style="color: #fff; margin: 0; font-size: 13px;">(Total Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
+        <p style="color: #fff; margin: 0; font-size: 13px;">(Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -790,19 +807,21 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   # Ensure current user exists in database
   cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
   if not cursor.fetchone():
-    cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+    cursor.execute("INSERT INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
                    (curr_user_name, 0, 0, 1, today_str, 0))
     conn.commit()
 
-  cursor.execute("SELECT worked_today FROM team_activity WHERE member_name = ?", (curr_user_name,))
+  cursor.execute("SELECT worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
   user_w_row = cursor.fetchone()
   current_user_worked = user_w_row[0] if user_w_row else 0
+  current_user_streak = user_w_row[1] if user_w_row else 1
 
   if current_user_worked == 0:
     if st.sidebar.button("🔥 I'm doing my work today"):
-      cursor.execute("UPDATE team_activity SET worked_today = 1 WHERE member_name = ?", (curr_user_name,))
+      new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
+      cursor.execute("UPDATE team_activity SET worked_today = 1, streak = ? WHERE member_name = ?", (new_streak, curr_user_name))
       conn.commit()
-      st.success("✅ Attendance marked for today!")
+      st.success("✅ Attendance marked and Streak updated for today!")
       st.rerun()
 
   if st.session_state["role"] == "Admin":
@@ -1002,13 +1021,28 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
         call_url = f'tel:{row["Phone"]}'
 
-        action_html = f"""
-                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    <a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
-                    <a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:8px 10px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
-                </div>
-                """
-        c5.markdown(action_html, unsafe_allow_html=True)
+        # FIX: Added form/button triggers to securely increment Pitch counts when WhatsApp or Call buttons are clicked
+        action_col1, action_col2, action_col3 = st.columns([1, 1, 1])
+        with action_col1:
+          if st.button(f"📞 Call", key=f"call_{idx}"):
+            curr_user = st.session_state["display_name"]
+            cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+            p_res = cursor.fetchone()
+            curr_p = p_res[0] if p_res else 0
+            cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+            conn.commit()
+            st.markdown(f'<meta http-equiv="refresh" content="0;url={call_url}">', unsafe_allow_html=True)
+            st.rerun()
+        with action_col2:
+          if st.button(f"📲 WhatsApp", key=f"wa_{idx}"):
+            curr_user = st.session_state["display_name"]
+            cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+            p_res = cursor.fetchone()
+            curr_p = p_res[0] if p_res else 0
+            cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+            conn.commit()
+            st.markdown(f'<meta http-equiv="refresh" content="0;url={wa_url}">', unsafe_allow_html=True)
+            st.rerun()
 
         bname = row["Business Name"]
         cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
@@ -1046,9 +1080,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             conn.commit()
             st.success("✅ Saved to database permanently!")
 
-        if c5.button(
-            f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"
-        ):
+        if st.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
           st.session_state["active_audit_lead"] = row.to_dict()
           st.session_state["selected_page"] = "Audit Report View"
           curr_user = st.session_state["display_name"]
