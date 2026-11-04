@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
-# Custom CSS for Professional Look, Print Styling & Black/White Inactive Emoji
+# Custom CSS for Professional Look, Print Styling & Dynamic Streak Glow
 st.markdown(
     """
     <style>
@@ -19,6 +19,11 @@ st.markdown(
     .inactive-streak {
         filter: grayscale(100%);
         opacity: 0.4;
+    }
+    
+    .active-streak {
+        filter: none;
+        opacity: 1;
     }
     
     @media print {
@@ -44,12 +49,9 @@ def init_db():
         )
     """)
   
-  # Drop old team_activity table if columns don't match, to ensure clean migration
-  cursor.execute("DROP TABLE IF EXISTS team_activity")
-  
-  # Table for Team Activity with all new columns
+  # Table for Team Activity (Fixed: Removed DROP TABLE so data persists!)
   cursor.execute("""
-        CREATE TABLE team_activity (
+        CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
             leads INTEGER,
             pitches INTEGER,
@@ -775,40 +777,47 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
   )
   if sorted_team:
     king_name, king_stats = sorted_team[0]
-    st.sidebar.success(
-        f"🏆 **King of the Day:** {king_name}\n(Score:"
-        f" {king_stats['pitches'] + king_stats['leads']})"
-    )
+    total_king_score = king_stats['pitches'] + king_stats['leads']
+    st.sidebar.markdown(f"""
+    <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+        <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
+        <p style="color: #fff; margin: 0; font-size: 13px;">(Total Score: {total_king_score} | Leads: {king_stats['leads']} | Pitches: {king_stats['pitches']})</p>
+    </div>
+    """, unsafe_allow_html=True)
 
   curr_user_name = st.session_state["display_name"]
-  if curr_user_name in team_scores:
-    w_status = team_scores[curr_user_name]["worked_today"]
-    if w_status == 0:
-      if st.sidebar.button("🔥 I'm doing my work today"):
-        cursor.execute("UPDATE team_activity SET worked_today = 1 WHERE member_name = ?", (curr_user_name,))
-        conn.commit()
-        st.success("✅ Attendance marked for today!")
-        st.rerun()
+  
+  # Ensure current user exists in database
+  cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
+  if not cursor.fetchone():
+    cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
+                   (curr_user_name, 0, 0, 1, today_str, 0))
+    conn.commit()
+
+  cursor.execute("SELECT worked_today FROM team_activity WHERE member_name = ?", (curr_user_name,))
+  user_w_row = cursor.fetchone()
+  current_user_worked = user_w_row[0] if user_w_row else 0
+
+  if current_user_worked == 0:
+    if st.sidebar.button("🔥 I'm doing my work today"):
+      cursor.execute("UPDATE team_activity SET worked_today = 1 WHERE member_name = ?", (curr_user_name,))
+      conn.commit()
+      st.success("✅ Attendance marked for today!")
+      st.rerun()
 
   if st.session_state["role"] == "Admin":
     st.sidebar.write("---")
     st.sidebar.write("👑 **CEO Master Team Tracker:**")
     for member, stats in team_scores.items():
-      emoji_class = "" if stats["worked_today"] == 1 else "inactive-streak"
+      emoji_class = "active-streak" if stats["worked_today"] == 1 else "inactive-streak"
       st.sidebar.markdown(
           f"""<div class="{emoji_class}">🔥 <b>{member}</b></div>
           🎯 Leads: `{stats['leads']}` | 💬 Pitches: `{stats['pitches']}` | 🔥 Streak: `{stats['streak']} Days` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
           unsafe_allow_html=True,
       )
   else:
-    if curr_user_name not in team_scores:
-      cursor.execute("INSERT OR IGNORE INTO team_activity (member_name, leads, pitches, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?)",
-                     (curr_user_name, 0, 0, 1, today_str, 0))
-      conn.commit()
-      team_scores[curr_user_name] = {"leads": 0, "pitches": 0, "streak": 1, "worked_today": 0}
-    
-    my_stats = team_scores[curr_user_name]
-    emoji_class = "" if my_stats["worked_today"] == 1 else "inactive-streak"
+    my_stats = team_scores.get(curr_user_name, {"leads": 0, "pitches": 0, "streak": 1, "worked_today": 0})
+    emoji_class = "active-streak" if my_stats["worked_today"] == 1 else "inactive-streak"
     
     st.sidebar.markdown(f"""<div class="{emoji_class}" style="font-size: 24px;">🔥 Daily Streak</div>""", unsafe_allow_html=True)
     st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
@@ -906,6 +915,8 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
       
       cursor.execute("UPDATE team_activity SET leads = ? WHERE member_name = ?", (new_leads_count, curr_user))
       conn.commit()
+      st.success(f"✅ {len(df)} leads successfully added to your count!")
+      st.rerun()
 
   if "leads_data" in st.session_state and not st.session_state[
       "leads_data"
@@ -1156,7 +1167,7 @@ elif st.session_state["selected_page"] == "Audit Report View":
     st.markdown("<br>", unsafe_allow_html=True)
     st.info(
         "💡 **प्रिन्ट कशी काढाल किंवा पीडीएफ कशी सेव्ह कराल?**\n"
-        "लॅपटॉपवर फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
+        "लॅपटॉपवर असताना फक्त **`Ctrl + P`** दाबा आणि प्रिन्टरच्या जागी **'Save as PDF'"
         " निवडा!"
     )
 
