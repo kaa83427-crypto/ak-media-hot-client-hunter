@@ -818,11 +818,31 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 wa_pitch_link = f"?action=pitch&user={user_enc}&target={urllib.parse.quote(wa_url)}"
                 call_pitch_link = f"?action=pitch&user={user_enc}&target={urllib.parse.quote(call_url)}"
 
-                action_html = f"""
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-                    <a href="{call_pitch_link}" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
-                    <a href="{wa_pitch_link}" style="text-decoration: none;"><button style="background-color:#25D366; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
-                </div>
+            # PURE STREAMS NATIVE COUNTER BUTTON & SECURE LINK
+                act_c1, act_c2 = c5.columns(2)
+                with act_c1:
+                    if st.button(f"📞 Pitch Call", key=f"call_btn_{idx}"):
+                        curr_user = st.session_state["display_name"]
+                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                        p_res = cursor.fetchone()
+                        curr_p = p_res[0] if p_res else 0
+                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+                        conn.commit()
+                        st.success("✅ Call Pitch Count Updated!")
+                        st.rerun()
+                    st.markdown(f'<a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:6px 10px; border-radius:5px; font-size:11px; cursor:pointer; width:100%;">🔗 Open Dialer</button></a>', unsafe_allow_html=True)
+
+                with act_c2:
+                    if st.button(f"📲 Pitch WA", key=f"wa_btn_{idx}"):
+                        curr_user = st.session_state["display_name"]
+                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                        p_res = cursor.fetchone()
+                        curr_p = p_res[0] if p_res else 0
+                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+                        conn.commit()
+                        st.success("✅ WhatsApp Pitch Count Updated!")
+                        st.rerun()
+                    st.markdown(f'<a href="{wa_url}" target="_blank" rel="noopener noreferrer"><button style="background-color:#25D366; color:white; border:none; padding:6px 10px; border-radius:5px; font-size:11px; cursor:pointer; width:100%;">🔗 Open WhatsApp</button></a>', unsafe_allow_html=True)
                 """
                 c5.markdown(action_html, unsafe_allow_html=True)
 
