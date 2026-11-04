@@ -873,8 +873,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                             DO UPDATE SET status = ?, remark = ?
                         """, (bname, f_status, f_remark, f_status, f_remark))
                         conn.commit()
-                        st.success("✅ Saved to database permanently!")
-
+                        st.success("✅ Saved to database permanently!") 
                 if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
                     st.session_state["active_audit_lead"] = row.to_dict()
                     st.session_state["selected_page"] = "Audit Report View"
