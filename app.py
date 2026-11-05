@@ -52,6 +52,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
             leads INTEGER,
+            weekly_leads INTEGER,
+            today_leads INTEGER,
             streak INTEGER,
             last_active_date TEXT,
             worked_today INTEGER
@@ -67,34 +69,31 @@ today_str = str(datetime.date.today())
 yesterday_str = str(datetime.date.today() - datetime.timedelta(days=1))
 
 default_team = {
-    "MR.AK (Admin)": {"leads": 0, "streak": 1},
-    "Hari Shinde": {"leads": 0, "streak": 1},
-    "Somnath Pardhi": {"leads": 0, "streak": 1},
+    "MR.AK (Admin)": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
+    "Hari Shinde": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
+    "Somnath Pardhi": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
 }
 
 for member, stats in default_team.items():
-    cursor.execute("SELECT last_active_date, worked_today, streak FROM team_activity WHERE member_name = ?", (member,))
+    cursor.execute("SELECT last_active_date FROM team_activity WHERE member_name = ?", (member,))
     row = cursor.fetchone()
     if not row:
         cursor.execute(
-            "INSERT INTO team_activity (member_name, leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?)",
-            (member, stats["leads"], stats["streak"], today_str, 0)
+            "INSERT INTO team_activity (member_name, leads, weekly_leads, today_leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (member, stats["leads"], stats["weekly_leads"], stats["today_leads"], stats["streak"], today_str, 0)
         )
 conn.commit()
 
-# ==================== STREAK & DATE CHECK LOGIC ====================
+# ==================== STREAK & DAILY RESET LOGIC (24 Hours Reset) ====================
 cursor.execute("SELECT member_name, last_active_date, worked_today, streak FROM team_activity")
 all_members = cursor.fetchall()
 
 for mem_name, last_dt, w_today, current_streak in all_members:
     if last_dt != today_str:
-        if last_dt == yesterday_str:
-            if w_today == 0:
-                cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
-            else:
-                cursor.execute("UPDATE team_activity SET worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
-        else:
-            cursor.execute("UPDATE team_activity SET streak = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+        # Reset today's leads automatically every 24 hours (new day)
+        cursor.execute("UPDATE team_activity SET today_leads = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
+        if last_dt != yesterday_str:
+            cursor.execute("UPDATE team_activity SET streak = 0 WHERE member_name = ?", (mem_name,))
 conn.commit()
 
 # ==================== INITIALIZE SESSION STATE ====================
@@ -183,28 +182,64 @@ if top_c3.button("🚪 Logout"):
     st.session_state["logged_in"] = False
     st.rerun()
 
-# Navigation Menu Bar
-n1, n2, n3, n4, n5 = st.columns(5)
+# Navigation Menu Bar (Added Team Tracking Menu)
+n1, n2, n3, n4, n5, n6 = st.columns(6)
 with n1:
     if st.button("🎯 Lead Hunter"):
         st.session_state["selected_page"] = "Lead Hunter Dashboard"
 with n2:
+    if st.button("📊 Team Tracking"):
+        st.session_state["selected_page"] = "Team Tracking Dashboard"
+with n3:
     if st.button("📑 Audit Report"):
         st.session_state["selected_page"] = "Audit Report View"
-with n3:
-    if st.button("💰 Service Plans & Quote"):
-        st.session_state["selected_page"] = "Quotation Generator"
 with n4:
-    if st.button("💬 Message Library"):
-        st.session_state["selected_page"] = "Message Library"
+    if st.button("💰 Service Plans"):
+        st.session_state["selected_page"] = "Quotation Generator"
 with n5:
-    if st.button("💡 Objection Sheet"):
+    if st.button("💬 Messages"):
+        st.session_state["selected_page"] = "Message Library"
+with n6:
+    if st.button("💡 Objections"):
         st.session_state["selected_page"] = "Objection Cheat Sheet"
 
 st.markdown("---")
 
+# ==================== PAGE: TEAM TRACKING DASHBOARD ====================
+if st.session_state["selected_page"] == "Team Tracking Dashboard":
+    st.title("📊 Team Performance & Live Tracking Dashboard")
+    st.write("### 👑 टीममधील सदस्यांची अचूक कामगिरी आणि लीड्स ट्रॅकिंग")
+
+    cursor.execute("SELECT member_name, leads, weekly_leads, today_leads, streak FROM team_activity ORDER BY leads DESC")
+    team_rows = cursor.fetchall()
+
+    if team_rows:
+        # Top Performer / King of the Day
+        top_member = team_rows[0]
+        st.markdown(f"""
+        <div style="background: linear-gradient(135deg, #1e3d2f 0%, #0e1117 100%); border: 2px solid #2ecc71; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
+            <h2 style="color: #2ecc71; margin: 0;">👑 Top Performer / King of the Day</h2>
+            <p style="color: #fff; font-size: 22px; font-weight: bold; margin: 10px 0 0 0;">{top_member[0]}</p>
+            <p style="color: #aaa; margin: 0; font-size: 14px;">Total Leads Hunted: <b>{top_member[1]}</b> | Today's Leads: <b>{top_member[3]}</b></p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.subheader("📋 Team Members Detailed Activity Report")
+
+        for member, all_l, weekly_l, today_l, streak in team_rows:
+            with st.container():
+                col_m1, col_m2, col_m3, col_m4 = st.columns([2, 1, 1, 1])
+                col_m1.markdown(f"### 👤 {member}")
+                col_m2.metric("📅 Today's Leads", today_l)
+                col_m3.metric("📈 This Week's Leads", weekly_l)
+                col_m4.metric("🏆 All-Time Leads", all_l)
+                st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
+    else:
+        st.info("⚠️ कोणतीही टीम माहिती उपलब्ध नाही.")
+
 # ==================== PAGE 5: SERVICE PLANS & QUOTATION GENERATOR ====================
-if st.session_state["selected_page"] == "Quotation Generator":
+elif st.session_state["selected_page"] == "Quotation Generator":
     st.title("💰 THE AK MEDIA - Service Plans & Instant Quotation Generator")
     st.write("### 📋 पीपीटीनुसार ५ मुख्य प्लॅन्स आणि कस्टमाइझ्ड कोटेशन कॅल्क्युलेटर")
 
@@ -597,16 +632,16 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     st.sidebar.markdown("---")
     st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
-    cursor.execute("SELECT member_name, leads, streak, worked_today FROM team_activity")
+    cursor.execute("SELECT member_name, leads, today_leads, streak, worked_today FROM team_activity")
     db_team_data = cursor.fetchall()
     
     team_scores = {}
-    for member, l_count, streak, w_today in db_team_data:
-        team_scores[member] = {"leads": l_count, "streak": streak, "worked_today": w_today}
+    for member, l_count, today_l, streak, w_today in db_team_data:
+        team_scores[member] = {"leads": l_count, "today_leads": today_l, "streak": streak, "worked_today": w_today}
 
     sorted_team = sorted(
         team_scores.items(),
-        key=lambda x: x[1]["leads"],
+        key=lambda x: x[1]["today_leads"],
         reverse=True,
     )
     if sorted_team:
@@ -614,7 +649,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         st.sidebar.markdown(f"""
         <div style="background-color: #1e3d2f; border: 1px solid #2ecc71; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
             <p style="color: #2ecc71; margin: 0; font-weight: bold;">👑 King of the Day: {king_name}</p>
-            <p style="color: #fff; margin: 0; font-size: 13px;">(Leads Hunted: {king_stats['leads']})</p>
+            <p style="color: #fff; margin: 0; font-size: 13px;">(Today's Leads: {king_stats['today_leads']})</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -622,8 +657,8 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     
     cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
     if not cursor.fetchone():
-        cursor.execute("INSERT INTO team_activity (member_name, leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?)",
-                       (curr_user_name, 0, 1, today_str, 0))
+        cursor.execute("INSERT INTO team_activity (member_name, leads, weekly_leads, today_leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (curr_user_name, 0, 0, 0, 1, today_str, 0))
         conn.commit()
 
     cursor.execute("SELECT worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
@@ -646,16 +681,17 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             emoji_class = "active-streak" if stats["worked_today"] == 1 else "inactive-streak"
             st.sidebar.markdown(
                 f"""<div class="{emoji_class}">🔥 <b>{member}</b></div>
-                🎯 Leads: `{stats['leads']}` | 🔥 Streak: `{stats['streak']} Days` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
+                🎯 Today Leads: `{stats['today_leads']}` | All-Time: `{stats['leads']}` <br>Status: `{'Active Today' if stats['worked_today']==1 else 'Not Marked Yet'}`<br><br>""",
                 unsafe_allow_html=True,
             )
     else:
-        my_stats = team_scores.get(curr_user_name, {"leads": 0, "streak": 1, "worked_today": 0})
+        my_stats = team_scores.get(curr_user_name, {"leads": 0, "today_leads": 0, "streak": 1, "worked_today": 0})
         emoji_class = "active-streak" if my_stats["worked_today"] == 1 else "inactive-streak"
         
         st.sidebar.markdown(f"""<div class="{emoji_class}" style="font-size: 24px;">🔥 Daily Streak</div>""", unsafe_allow_html=True)
         st.sidebar.metric("🔥 Daily Contribution Streak", f"{my_stats['streak']} Days")
-        st.sidebar.metric("Total Leads Hunted By Me", my_stats["leads"])
+        st.sidebar.metric("Today's Leads Hunted", my_stats["today_leads"])
+        st.sidebar.metric("All-Time Leads Hunted", my_stats["leads"])
 
     secret_key = st.secrets.get("GOOGLE_API_KEY", "")
     if not secret_key:
@@ -729,14 +765,21 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             st.session_state["leads_data"] = df
 
             curr_user = st.session_state["display_name"]
-            cursor.execute("SELECT leads FROM team_activity WHERE member_name = ?", (curr_user,))
+            cursor.execute("SELECT leads, weekly_leads, today_leads FROM team_activity WHERE member_name = ?", (curr_user,))
             res = cursor.fetchone()
-            current_leads_db = res[0] if res else 0
-            new_leads_count = current_leads_db + len(df)
-            
-            cursor.execute("UPDATE team_activity SET leads = ? WHERE member_name = ?", (new_leads_count, curr_user))
+            current_all = res[0] if res else 0
+            current_week = res[1] if res else 0
+            current_today = res[2] if res else 0
+
+            new_count = len(df)
+            cursor.execute("""
+                UPDATE team_activity 
+                SET leads = ?, weekly_leads = ?, today_leads = ? 
+                WHERE member_name = ?
+            """, (current_all + new_count, current_week + new_count, current_today + new_count, curr_user))
             conn.commit()
-            st.success(f"✅ {len(df)} leads successfully added to your count!")
+
+            st.success(f"✅ {new_count} leads successfully added to your count!")
             st.rerun()
 
     if "leads_data" in st.session_state and not st.session_state["leads_data"].empty:
