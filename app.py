@@ -48,6 +48,9 @@ def init_db():
         )
     """)
     
+    # Drop old table to recreate with new columns safely without error
+    cursor.execute("DROP TABLE IF EXISTS team_activity")
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
