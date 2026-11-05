@@ -48,9 +48,6 @@ def init_db():
         )
     """)
     
-    # Drop old table to recreate with new columns safely without error
-    cursor.execute("DROP TABLE IF EXISTS team_activity")
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS team_activity (
             member_name TEXT PRIMARY KEY,
@@ -93,7 +90,6 @@ all_members = cursor.fetchall()
 
 for mem_name, last_dt, w_today, current_streak in all_members:
     if last_dt != today_str:
-        # Reset today's leads automatically every 24 hours (new day)
         cursor.execute("UPDATE team_activity SET today_leads = 0, worked_today = 0, last_active_date = ? WHERE member_name = ?", (today_str, mem_name))
         if last_dt != yesterday_str:
             cursor.execute("UPDATE team_activity SET streak = 0 WHERE member_name = ?", (mem_name,))
@@ -185,7 +181,7 @@ if top_c3.button("🚪 Logout"):
     st.session_state["logged_in"] = False
     st.rerun()
 
-# Navigation Menu Bar (Added Team Tracking Menu)
+# Navigation Menu Bar
 n1, n2, n3, n4, n5, n6 = st.columns(6)
 with n1:
     if st.button("🎯 Lead Hunter"):
@@ -217,7 +213,6 @@ if st.session_state["selected_page"] == "Team Tracking Dashboard":
     team_rows = cursor.fetchall()
 
     if team_rows:
-        # Top Performer / King of the Day
         top_member = team_rows[0]
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #1e3d2f 0%, #0e1117 100%); border: 2px solid #2ecc71; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
@@ -635,6 +630,30 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     st.sidebar.markdown("---")
     st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
+    curr_user_name = st.session_state["display_name"]
+
+    # Check and insert user if missing
+    cursor.execute("SELECT member_name, worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        cursor.execute("INSERT INTO team_activity (member_name, leads, weekly_leads, today_leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                       (curr_user_name, 0, 0, 0, 1, today_str, 0))
+        conn.commit()
+        current_user_worked = 0
+        current_user_streak = 1
+    else:
+        current_user_worked = user_row[1]
+        current_user_streak = user_row[2]
+
+    if current_user_worked == 0:
+        if st.sidebar.button("🔥 I'm doing my work today"):
+            new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
+            cursor.execute("UPDATE team_activity SET worked_today = 1, streak = ? WHERE member_name = ?", (new_streak, curr_user_name))
+            conn.commit()
+            st.sidebar.success("✅ Attendance marked!")
+            st.rerun()
+
+    # Fetch updated team data for Leaderboard & Status
     cursor.execute("SELECT member_name, leads, today_leads, streak, worked_today FROM team_activity")
     db_team_data = cursor.fetchall()
     
@@ -655,27 +674,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             <p style="color: #fff; margin: 0; font-size: 13px;">(Today's Leads: {king_stats['today_leads']})</p>
         </div>
         """, unsafe_allow_html=True)
-
-    curr_user_name = st.session_state["display_name"]
-    
-    cursor.execute("SELECT member_name FROM team_activity WHERE member_name = ?", (curr_user_name,))
-    if not cursor.fetchone():
-        cursor.execute("INSERT INTO team_activity (member_name, leads, weekly_leads, today_leads, streak, last_active_date, worked_today) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                       (curr_user_name, 0, 0, 0, 1, today_str, 0))
-        conn.commit()
-
-    cursor.execute("SELECT worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
-    user_w_row = cursor.fetchone()
-    current_user_worked = user_w_row[0] if user_w_row else 0
-    current_user_streak = user_w_row[1] if user_w_row else 1
-
-    if current_user_worked == 0:
-        if st.sidebar.button("🔥 I'm doing my work today"):
-            new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
-            cursor.execute("UPDATE team_activity SET worked_today = 1, streak = ? WHERE member_name = ?", (new_streak, curr_user_name))
-            conn.commit()
-            st.success("✅ Attendance marked and Streak updated for today!")
-            st.rerun()
 
     if st.session_state["role"] == "Admin":
         st.sidebar.write("---")
