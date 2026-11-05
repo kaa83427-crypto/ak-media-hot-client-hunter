@@ -643,32 +643,36 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
                 call_url = f'tel:{row["Phone"]}'
                 
-                # SAFE NATIVE COUNTER BUTTON & DIRECT LINKS
-                act_c1, act_c2 = c5.columns(2)
-                with act_c1:
-                    if st.button(f"📞 Pitch Call", key=f"call_btn_{idx}"):
-                        curr_user = st.session_state["display_name"]
-                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-                        p_res = cursor.fetchone()
-                        curr_p = p_res[0] if p_res else 0
-                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-                        conn.commit()
-                        st.success("✅ Call Pitch Count Updated!")
-                        st.rerun()
-                    st.markdown(f'<a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:6px 10px; border-radius:5px; font-size:11px; cursor:pointer; width:100%;">🔗 Open Dialer</button></a>', unsafe_allow_html=True)
-                    
-                with act_c2:
-                    if st.button(f"📲 Pitch WA", key=f"wa_btn_{idx}"):
-                        curr_user = st.session_state["display_name"]
-                        cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
-                        p_res = cursor.fetchone()
-                        curr_p = p_res[0] if p_res else 0
-                        cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
-                        conn.commit()
-                        st.success("✅ WhatsApp Pitch Count Updated!")
-                        st.rerun()
-                    st.markdown(f'<a href="{wa_url}" target="_blank" rel="noopener noreferrer"><button style="background-color:#25D366; color:white; border:none; padding:6px 10px; border-radius:5px; font-size:11px; cursor:pointer; width:100%;">🔗 Open WhatsApp</button></a>', unsafe_allow_html=True)
+                # 100% SECURE SINGLE-CLICK BUTTON & PITCH COUNTER FIX
+                user_enc = urllib.parse.quote(st.session_state["display_name"])
                 
+                # Check if this specific business call/wa was triggered via query params
+                query_params = st.query_params
+                if query_params.get("action") == "pitch" and query_params.get("user") == st.session_state["display_name"] and query_params.get("biz") == row["Business Name"]:
+                    p_type = query_params.get("type")
+                    curr_user = st.session_state["display_name"]
+                    
+                    # Update pitch count only once per click action securely
+                    cursor.execute("SELECT pitches FROM team_activity WHERE member_name = ?", (curr_user,))
+                    p_res = cursor.fetchone()
+                    curr_p = p_res[0] if p_res else 0
+                    cursor.execute("UPDATE team_activity SET pitches = ? WHERE member_name = ?", (curr_p + 1, curr_user))
+                    conn.commit()
+                    
+                    target_url = call_url if p_type == "call" else wa_url
+                    st.query_params.clear()
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={target_url}">', unsafe_allow_html=True)
+
+                call_pitch_link = f"?action=pitch&user={user_enc}&biz={urllib.parse.quote(row['Business Name'])}&type=call"
+                wa_pitch_link = f"?action=pitch&user={user_enc}&biz={urllib.parse.quote(row['Business Name'])}&type=wa"
+
+                action_html = f"""
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <a href="{call_pitch_link}" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 14px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
+                    <a href="{wa_pitch_link}" style="text-decoration: none;"><button style="background-color:#25D366; color:white; border:none; padding:8px 14px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📲 WhatsApp</button></a>
+                </div>
+                """
+                c5.markdown(action_html, unsafe_allow_html=True)                
                 bname = row["Business Name"]
                 cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
                 f_data = cursor.fetchone()
