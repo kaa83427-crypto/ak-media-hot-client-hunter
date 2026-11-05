@@ -72,6 +72,8 @@ default_team = {
     "MR.AK (Admin)": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Hari Shinde": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Somnath Pardhi": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
+    "Samadhan Tidke": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
+
 }
 
 for member, stats in default_team.items():
@@ -129,6 +131,12 @@ USERS_DB = {
         "role": "Sales Representative",
         "name": "Somnath Pardhi",
     },
+    "ST123": {
+        "pass": "akmedia123",
+        "role": "On-Bording Coordinator",
+        "name": "Samadhan Tidke",
+    },
+
 }
 
 if not st.session_state["logged_in"]:
