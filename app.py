@@ -658,8 +658,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     else:
         current_user_worked = user_row[1]
         current_user_streak = user_row[2]
-        current_user_streak = user_row[3]
-        current_user_streak = user_row[4]
 
 
     if current_user_worked == 0:
