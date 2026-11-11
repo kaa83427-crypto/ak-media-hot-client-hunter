@@ -73,6 +73,7 @@ default_team = {
     "Hari Shinde": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Somnath Pardhi": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Samadhan Tidke": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
+    "Santosh Gaikwad": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
 
 }
 
@@ -135,6 +136,11 @@ USERS_DB = {
         "pass": "akmedia123",
         "role": "On-Bording Coordinator",
         "name": "Samadhan Tidke",
+    },
+    "SG123": {
+        "pass": "akmedia123",
+        "role": "Sales Representative",
+        "name": "Santosh Gaikwad",
     },
 
 }
@@ -652,6 +658,9 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     else:
         current_user_worked = user_row[1]
         current_user_streak = user_row[2]
+        current_user_streak = user_row[3]
+        current_user_streak = user_row[4]
+
 
     if current_user_worked == 0:
         if st.sidebar.button("🔥 I'm doing my work today"):
