@@ -43,8 +43,15 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
+            taluka TEXT,
+            area TEXT,
+            category TEXT,
+            phone TEXT,
+            rating TEXT,
             status TEXT,
-            remark TEXT
+            remark TEXT,
+            updated_by TEXT,
+            updated_date TEXT
         )
     """)
     
@@ -74,7 +81,6 @@ default_team = {
     "Somnath Pardhi": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Samadhan Tidke": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
     "Santosh Gaikwad": {"leads": 0, "weekly_leads": 0, "today_leads": 0, "streak": 1},
-
 }
 
 for member, stats in default_team.items():
@@ -98,7 +104,7 @@ for mem_name, last_dt, w_today, current_streak in all_members:
             cursor.execute("UPDATE team_activity SET streak = 0 WHERE member_name = ?", (mem_name,))
 conn.commit()
 
-# ==================== INITIALIZE SESSION STATE ====================
+# ==================== INITIALIZE SESSION STATE (STABLE AUTH) ====================
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 if "username" not in st.session_state:
@@ -142,7 +148,6 @@ USERS_DB = {
         "role": "Sales Representative",
         "name": "Santosh Gaikwad",
     },
-
 }
 
 if not st.session_state["logged_in"]:
@@ -193,10 +198,13 @@ top_c1, top_c2, top_c3 = st.columns([2, 2, 1])
 top_c1.write(f"👤 **Logged in as:** {st.session_state['display_name']} (*{st.session_state['role']}*)")
 if top_c3.button("🚪 Logout"):
     st.session_state["logged_in"] = False
+    st.session_state["username"] = ""
+    st.session_state["role"] = ""
+    st.session_state["display_name"] = ""
     st.rerun()
 
-# Navigation Menu Bar
-n1, n2, n3, n4, n5, n6 = st.columns(6)
+# Navigation Menu Bar (Added Old Leads Section)
+n1, n2, n3, n4, n5, n6, n7 = st.columns(7)
 with n1:
     if st.button("🎯 Lead Hunter"):
         st.session_state["selected_page"] = "Lead Hunter Dashboard"
@@ -204,15 +212,18 @@ with n2:
     if st.button("📊 Team Tracking"):
         st.session_state["selected_page"] = "Team Tracking Dashboard"
 with n3:
+    if st.button("🗂️ Pitched / Old Leads"):
+        st.session_state["selected_page"] = "Old Leads History"
+with n4:
     if st.button("📑 Audit Report"):
         st.session_state["selected_page"] = "Audit Report View"
-with n4:
+with n5:
     if st.button("💰 Service Plans"):
         st.session_state["selected_page"] = "Quotation Generator"
-with n5:
+with n6:
     if st.button("💬 Messages"):
         st.session_state["selected_page"] = "Message Library"
-with n6:
+with n7:
     if st.button("💡 Objections"):
         st.session_state["selected_page"] = "Objection Cheat Sheet"
 
@@ -249,6 +260,40 @@ if st.session_state["selected_page"] == "Team Tracking Dashboard":
                 st.markdown("<hr style='border-color: #333;'>", unsafe_allow_html=True)
     else:
         st.info("⚠️ कोणतीही टीम माहिती उपलब्ध नाही.")
+
+# ==================== PAGE: OLD / PITCHED LEADS HISTORY ====================
+elif st.session_state["selected_page"] == "Old Leads History":
+    st.title("🗂️ Pitched & Follow-up Leads History (जुन्या/सेव्ह केलेल्या लीड्स)")
+    st.write("### 📂 आतापर्यंत ज्या व्यवसायांवर कॉल/व्हॉट्सॲप केला आहे किंवा स्टेटस सेव्ह केलाय, त्यांची संपूर्ण यादी:")
+
+    cursor.execute("SELECT business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date FROM followups ORDER BY updated_date DESC")
+    saved_leads = cursor.fetchall()
+
+    if saved_leads:
+        search_query = st.text_input("🔍 व्यवसाय किंवा एरियानुसार शोधा (Search Business/Area):")
+        
+        for bname, taluka, area, category, phone, rating, status, remark, u_by, u_date in saved_leads:
+            if search_query and search_query.lower() not in bname.lower() and search_query.lower() not in area.lower():
+                continue
+            with st.container():
+                oc1, oc2, oc3, oc4 = st.columns([2, 1.5, 1.5, 2])
+                oc1.markdown(f"**🏢 {bname}**\n📍 {area}, {taluka}")
+                oc2.markdown(f"🏷️ {category}\n⭐ Rating: {rating}")
+                oc3.markdown(f"📌 Status: **{status}**\n👤 By: {u_by}")
+                oc4.markdown(f"💬 Remark: *{remark if remark else 'No remark'}*\n📅 Date: {u_date}")
+                
+                wa_url = f'https://wa.me/{phone}?text=Hello%20{urllib.parse.quote(bname)}'
+                call_url = f'tel:{phone}'
+                
+                btn_c1, btn_c2 = oc4.columns(2)
+                with btn_c1:
+                    st.markdown(f'<a href="{call_url}" target="_blank"><button style="background-color:#007BFF; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">📞 Call</button></a>', unsafe_allow_html=True)
+                with btn_c2:
+                    st.markdown(f'<a href="{wa_url}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; width:100%;">📲 WA</button></a>', unsafe_allow_html=True)
+
+                st.markdown("<hr style='margin:10px 0; border-color:#333;'/>", unsafe_allow_html=True)
+    else:
+        st.info("⚠️ अजून कोणतीही लीड सेव्ह किंवा पिच केलेली नाही. डॅशबोर्डवरून लीड्सवर प्रक्रिया करा.")
 
 # ==================== PAGE 5: SERVICE PLANS & QUOTATION GENERATOR ====================
 elif st.session_state["selected_page"] == "Quotation Generator":
@@ -646,7 +691,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
     curr_user_name = st.session_state["display_name"]
 
-    # Check and insert user if missing
     cursor.execute("SELECT member_name, worked_today, streak FROM team_activity WHERE member_name = ?", (curr_user_name,))
     user_row = cursor.fetchone()
     if not user_row:
@@ -659,7 +703,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         current_user_worked = user_row[1]
         current_user_streak = user_row[2]
 
-
     if current_user_worked == 0:
         if st.sidebar.button("🔥 I'm doing my work today"):
             new_streak = current_user_streak + 1 if current_user_streak > 0 else 1
@@ -668,7 +711,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             st.sidebar.success("✅ Attendance marked!")
             st.rerun()
 
-    # Fetch updated team data for Leaderboard & Status
     cursor.execute("SELECT member_name, leads, today_leads, streak, worked_today FROM team_activity")
     db_team_data = cursor.fetchall()
     
@@ -850,7 +892,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
                 call_url = f'tel:{row["Phone"]}'
 
-                # STABLE DIRECT HTML LINKS (No logout, no page reset, opens instantly)
                 action_html = f"""
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
                     <a href="{call_url}" target="_blank" style="text-decoration: none;"><button style="background-color:#007BFF; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">📞 Call Now</button></a>
@@ -880,13 +921,17 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                     f_remark = st.text_input("Add Remark / Notes", value=current_f_remark, key=f"remark_{idx}")
                     if st.button("💾 Save Status", key=f"save_{idx}"):
                         cursor.execute("""
-                            INSERT INTO followups (business_name, status, remark) 
-                            VALUES (?, ?, ?) 
+                            INSERT INTO followups (business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
                             ON CONFLICT(business_name) 
-                            DO UPDATE SET status = ?, remark = ?
-                        """, (bname, f_status, f_remark, f_status, f_remark))
+                            DO UPDATE SET status = ?, remark = ?, updated_by = ?, updated_date = ?
+                        """, (
+                            bname, row['Taluka'], row['Area'], row['Category'], row['Phone'], str(row['Rating']), 
+                            f_status, f_remark, curr_user_name, today_str,
+                            f_status, f_remark, curr_user_name, today_str
+                        ))
                         conn.commit()
-                        st.success("✅ Saved to database permanently!")
+                        st.success("✅ Saved to Pitched Leads History permanently!")
 
                 if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
                     st.session_state["active_audit_lead"] = row.to_dict()
