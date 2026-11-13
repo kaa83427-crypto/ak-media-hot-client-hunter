@@ -40,6 +40,9 @@ def init_db():
     conn = sqlite3.connect("ak_media.db", check_same_thread=False)
     cursor = conn.cursor()
     
+    # Drop old table to recreate with new columns safely without error
+    cursor.execute("DROP TABLE IF EXISTS followups")
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
@@ -68,7 +71,6 @@ def init_db():
     """)
     conn.commit()
     return conn
-
 conn = init_db()
 cursor = conn.cursor()
 
