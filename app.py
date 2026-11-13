@@ -819,10 +819,23 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             st.error(f"❌ Connection Error: {str(e)}")
             return pd.DataFrame()
 
-    if st.sidebar.button("🎯 Hunt District Leads Now"):
+      if st.sidebar.button("🎯 Hunt District Leads Now"):
         with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
             df = fetch_strict_area_places(selected_taluka, selected_area, category_input, api_key)
             st.session_state["leads_data"] = df
+
+            if not df.empty:
+                # Automatically save all hunted leads to followups table so they appear in Old Leads history instantly
+                for _, row in df.iterrows():
+                    cursor.execute("""
+                        INSERT INTO followups (business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                        ON CONFLICT(business_name) DO NOTHING
+                    """, (
+                        row['Business Name'], row['Taluka'], row['Area'], row['Category'], 
+                        row['Phone'], str(row['Rating']), "New Lead", "", curr_user_name, today_str
+                    ))
+                conn.commit()
 
             curr_user = st.session_state["display_name"]
             cursor.execute("SELECT leads, weekly_leads, today_leads FROM team_activity WHERE member_name = ?", (curr_user,))
@@ -839,9 +852,8 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             """, (current_all + new_count, current_week + new_count, current_today + new_count, curr_user))
             conn.commit()
 
-            st.success(f"✅ {new_count} leads successfully added to your count!")
+            st.success(f"✅ {new_count} leads successfully added and saved to database!")
             st.rerun()
-
     if "leads_data" in st.session_state and not st.session_state["leads_data"].empty:
         df = st.session_state["leads_data"]
 
