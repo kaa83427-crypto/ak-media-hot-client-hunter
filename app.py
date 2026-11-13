@@ -40,9 +40,6 @@ def init_db():
     conn = sqlite3.connect("ak_media.db", check_same_thread=False)
     cursor = conn.cursor()
     
-    # Drop old table to recreate with new columns safely without error
-    cursor.execute("DROP TABLE IF EXISTS followups")
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS followups (
             business_name TEXT PRIMARY KEY,
@@ -71,6 +68,7 @@ def init_db():
     """)
     conn.commit()
     return conn
+
 conn = init_db()
 cursor = conn.cursor()
 
@@ -205,7 +203,7 @@ if top_c3.button("🚪 Logout"):
     st.session_state["display_name"] = ""
     st.rerun()
 
-# Navigation Menu Bar (Added Old Leads Section)
+# Navigation Menu Bar
 n1, n2, n3, n4, n5, n6, n7 = st.columns(7)
 with n1:
     if st.button("🎯 Lead Hunter"):
@@ -819,13 +817,12 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             st.error(f"❌ Connection Error: {str(e)}")
             return pd.DataFrame()
 
-      if st.sidebar.button("🎯 Hunt District Leads Now"):
+    if st.sidebar.button("🎯 Hunt District Leads Now"):
         with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
             df = fetch_strict_area_places(selected_taluka, selected_area, category_input, api_key)
             st.session_state["leads_data"] = df
 
             if not df.empty:
-                # Automatically save all hunted leads to followups table so they appear in Old Leads history instantly
                 for _, row in df.iterrows():
                     cursor.execute("""
                         INSERT INTO followups (business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date) 
@@ -854,6 +851,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
             st.success(f"✅ {new_count} leads successfully added and saved to database!")
             st.rerun()
+
     if "leads_data" in st.session_state and not st.session_state["leads_data"].empty:
         df = st.session_state["leads_data"]
 
