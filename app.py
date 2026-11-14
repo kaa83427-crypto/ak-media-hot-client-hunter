@@ -9,6 +9,11 @@ st.set_page_config(
     page_title="THE AK MEDIA - Hot Client Hunter", page_icon="🎯", layout="wide"
 )
 
+# ==================== GOOGLE SHEETS CONFIGURATION ====================
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/158XettQYNRmmuw0qQVcKi4vz-_0xURZ4a0vrGrGv-Eo/edit?usp=sharing"
+# Paste your deployed Google Apps Script Web App URL below (or store in st.secrets["APPS_SCRIPT_URL"])
+APPS_SCRIPT_URL = st.secrets.get("APPS_SCRIPT_URL", "PASTE_YOUR_WEB_APP_URL_HERE")
+
 # Custom CSS for Professional Look, Print Styling & Dynamic Streak Glow
 st.markdown(
     """
@@ -34,6 +39,38 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
+# ==================== GOOGLE SHEETS SYNC HELPERS ====================
+def sync_leads_to_google_sheet(rows_list):
+    if not APPS_SCRIPT_URL or "PASTE_YOUR_WEB_APP_URL" in APPS_SCRIPT_URL:
+        return False
+    try:
+        resp = requests.post(APPS_SCRIPT_URL, json={"rows": rows_list}, timeout=15)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+def fetch_leads_from_google_sheet(taluka=None, area=None, category=None):
+    if not APPS_SCRIPT_URL or "PASTE_YOUR_WEB_APP_URL" in APPS_SCRIPT_URL:
+        return pd.DataFrame()
+    try:
+        resp = requests.get(APPS_SCRIPT_URL, timeout=15)
+        if resp.status_code == 200:
+            data = resp.json()
+            if not data:
+                return pd.DataFrame()
+            df = pd.DataFrame(data)
+            if taluka and area and category and not df.empty:
+                filtered = df[
+                    (df["Taluka"].astype(str) == str(taluka)) &
+                    (df["Area"].astype(str) == str(area)) &
+                    (df["Category"].astype(str) == str(category))
+                ]
+                return filtered
+            return df
+    except Exception:
+        return pd.DataFrame()
+    return pd.DataFrame()
 
 # ==================== LOCAL SQLITE DATABASE SETUP ====================
 def init_db():
@@ -264,7 +301,26 @@ if st.session_state["selected_page"] == "Team Tracking Dashboard":
 # ==================== PAGE: OLD / PITCHED LEADS HISTORY ====================
 elif st.session_state["selected_page"] == "Old Leads History":
     st.title("🗂️ Pitched & Follow-up Leads History (जुन्या/सेव्ह केलेल्या लीड्स)")
-    st.write("### 📂 आतापर्यंत ज्या व्यवसायांवर कॉल/व्हॉट्सॲप केला आहे किंवा स्टेटस सेव्ह केलाय, त्यांची संपूर्ण यादी:")
+    
+    # Direct Google Sheet Master Database Link Banner
+    st.markdown(
+        f"""
+        <div style="background-color: #16241b; border: 2px solid #2ecc71; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h4 style="color: #2ecc71; margin: 0;">📊 AK Media Master Google Sheet Database</h4>
+                <p style="color: #ddd; margin: 4px 0 0 0; font-size: 13px;">सर्व हंट केलेल्या आणि अपडेट केलेल्या लीड्स थेट या Google Sheet मध्ये कायमस्वरूपी सेव्ह राहतात.</p>
+            </div>
+            <a href="{GOOGLE_SHEET_URL}" target="_blank" style="text-decoration: none;">
+                <button style="background-color: #2ecc71; color: black; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                    🔗 Open Master Google Sheet
+                </button>
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("### 📂 आतापर्यंत हंट केलेल्या आणि फॉलो-अप घेतलेल्या व्यवसायांची संपूर्ण यादी:")
 
     cursor.execute("SELECT business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date FROM followups ORDER BY updated_date DESC")
     saved_leads = cursor.fetchall()
@@ -293,7 +349,7 @@ elif st.session_state["selected_page"] == "Old Leads History":
 
                 st.markdown("<hr style='margin:10px 0; border-color:#333;'/>", unsafe_allow_html=True)
     else:
-        st.info("⚠️ अजून कोणतीही लीड सेव्ह किंवा पिच केलेली नाही. डॅशबोर्डवरून लीड्सवर प्रक्रिया करा.")
+        st.info("⚠️ अजून कोणतीही लीड सेव्ह केलेली नाही. डॅशबोर्डवरून लीड्स हंट करा.")
 
 # ==================== PAGE 5: SERVICE PLANS & QUOTATION GENERATOR ====================
 elif st.session_state["selected_page"] == "Quotation Generator":
@@ -818,8 +874,27 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             return pd.DataFrame()
 
     if st.sidebar.button("🎯 Hunt District Leads Now"):
-        with st.spinner(f"🔍 Fetching real-time AI leads for {selected_area}..."):
-            df = fetch_strict_area_places(selected_taluka, selected_area, category_input, api_key)
+        with st.spinner(f"🔍 Checking Google Sheets & fetching leads for {selected_area}..."):
+            # 1. Check Google Sheets first so API quota isn't wasted for already hunted sections
+            df = fetch_leads_from_google_sheet(selected_taluka, selected_area, category_input)
+            source_label = "Google Sheets Cache (0 API Credits Used)"
+
+            # 2. If not in Google Sheets yet, fetch from Google Places API and upload to Google Sheets
+            if df.empty:
+                df = fetch_strict_area_places(selected_taluka, selected_area, category_input, api_key)
+                source_label = "Google Places Live API + Synced to Google Sheets"
+
+                if not df.empty:
+                    sheet_payload = []
+                    for _, row in df.iterrows():
+                        r_dict = row.to_dict()
+                        r_dict["Followup_Status"] = "New Lead"
+                        r_dict["Remark"] = ""
+                        r_dict["Updated_By"] = curr_user_name
+                        r_dict["Updated_Date"] = today_str
+                        sheet_payload.append(r_dict)
+                    sync_leads_to_google_sheet(sheet_payload)
+
             st.session_state["leads_data"] = df
 
             if not df.empty:
@@ -830,34 +905,34 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                         ON CONFLICT(business_name) DO NOTHING
                     """, (
                         row['Business Name'], row['Taluka'], row['Area'], row['Category'], 
-                        row['Phone'], str(row['Rating']), "New Lead", "", curr_user_name, today_str
+                        str(row['Phone']), str(row['Rating']), "New Lead", "", curr_user_name, today_str
                     ))
                 conn.commit()
 
-            curr_user = st.session_state["display_name"]
-            cursor.execute("SELECT leads, weekly_leads, today_leads FROM team_activity WHERE member_name = ?", (curr_user,))
-            res = cursor.fetchone()
-            current_all = res[0] if res else 0
-            current_week = res[1] if res else 0
-            current_today = res[2] if res else 0
+                curr_user = st.session_state["display_name"]
+                cursor.execute("SELECT leads, weekly_leads, today_leads FROM team_activity WHERE member_name = ?", (curr_user,))
+                res = cursor.fetchone()
+                current_all = res[0] if res else 0
+                current_week = res[1] if res else 0
+                current_today = res[2] if res else 0
 
-            new_count = len(df)
-            cursor.execute("""
-                UPDATE team_activity 
-                SET leads = ?, weekly_leads = ?, today_leads = ? 
-                WHERE member_name = ?
-            """, (current_all + new_count, current_week + new_count, current_today + new_count, curr_user))
-            conn.commit()
+                new_count = len(df)
+                cursor.execute("""
+                    UPDATE team_activity 
+                    SET leads = ?, weekly_leads = ?, today_leads = ? 
+                    WHERE member_name = ?
+                """, (current_all + new_count, current_week + new_count, current_today + new_count, curr_user))
+                conn.commit()
 
-            st.success(f"✅ {new_count} leads successfully added and saved to database!")
-            st.rerun()
+                st.success(f"✅ {new_count} leads loaded ({source_label})!")
+                st.rerun()
 
     if "leads_data" in st.session_state and not st.session_state["leads_data"].empty:
         df = st.session_state["leads_data"]
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Businesses Found", len(df))
-        hot_count = len(df[df["AI Score"].str.contains("High Priority")])
+        hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
         col2.metric("🔥 AI High Priority Clients", hot_count)
         col3.metric("Target Area", selected_area)
 
@@ -938,12 +1013,21 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                             ON CONFLICT(business_name) 
                             DO UPDATE SET status = ?, remark = ?, updated_by = ?, updated_date = ?
                         """, (
-                            bname, row['Taluka'], row['Area'], row['Category'], row['Phone'], str(row['Rating']), 
+                            bname, row['Taluka'], row['Area'], row['Category'], str(row['Phone']), str(row['Rating']), 
                             f_status, f_remark, curr_user_name, today_str,
                             f_status, f_remark, curr_user_name, today_str
                         ))
                         conn.commit()
-                        st.success("✅ Saved to Pitched Leads History permanently!")
+
+                        # Sync updated status & remark back to Google Sheet
+                        updated_row = row.to_dict()
+                        updated_row["Followup_Status"] = f_status
+                        updated_row["Remark"] = f_remark
+                        updated_row["Updated_By"] = curr_user_name
+                        updated_row["Updated_Date"] = today_str
+                        sync_leads_to_google_sheet([updated_row])
+
+                        st.success("✅ Saved to Database & Synced to Google Sheet!")
 
                 if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
                     st.session_state["active_audit_lead"] = row.to_dict()
