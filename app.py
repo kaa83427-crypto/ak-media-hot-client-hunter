@@ -969,7 +969,8 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 rat_val = row['Rating'] if 'Rating' in row else '4.0'
                 ai_val = row['AI Score'] if 'AI Score' in row else '⚡ Standard'
                 c2.write(f"🏷️ {cat_val}\n⭐ Rating: {rat_val}\n🤖 {ai_val}")
-                c3.write(f"📅 Last Post: {row['Last Post']}")
+                last_post_val = row['Last Post'] if 'Last Post' in row else 'N/A'
+                c3.write(f"📅 Last Post: {last_post_val}")
                 c4.error(f"🔥 {row['Status']}")
 
                 if "Marathi" in pitch_language:
