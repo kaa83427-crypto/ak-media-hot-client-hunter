@@ -965,7 +965,10 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             with st.container():
                 c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
                 c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
-                c2.write(f"🏷️ {row['Category']}\n⭐ Rating: {row['Rating']}\n🤖 {row['AI Score']}")
+                cat_val = row['Category'] if 'Category' in row else category_input
+                rat_val = row['Rating'] if 'Rating' in row else '4.0'
+                ai_val = row['AI Score'] if 'AI Score' in row else '⚡ Standard'
+                c2.write(f"🏷️ {cat_val}\n⭐ Rating: {rat_val}\n🤖 {ai_val}")
                 c3.write(f"📅 Last Post: {row['Last Post']}")
                 c4.error(f"🔥 {row['Status']}")
 
