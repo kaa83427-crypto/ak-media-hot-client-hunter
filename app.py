@@ -934,10 +934,11 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Businesses Found", len(df))
      # Check if "AI Score" column exists to prevent KeyError
-        if "AI Score" in df.columns:
-            hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
-        else:
-            hot_count = 0        col2.metric("🔥 AI High Priority Clients", hot_count)
+       if "AI Score" in df.columns:
+             hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
+         else:
+            hot_count = 0   
+        col2.metric("🔥 AI High Priority Clients", hot_count)           
         col3.metric("Target Area", selected_area)
 
         cursor.execute("SELECT business_name, status, remark FROM followups")
