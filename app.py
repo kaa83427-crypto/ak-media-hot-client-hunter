@@ -12,7 +12,7 @@ st.set_page_config(
 # ==================== GOOGLE SHEETS CONFIGURATION ====================
 GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/158XettQYNRmmuw0qQVcKi4vz-_0xURZ4a0vrGrGv-Eo/edit?usp=sharing"
 # Paste your deployed Google Apps Script Web App URL below (or store in st.secrets["APPS_SCRIPT_URL"])
-APPS_SCRIPT_URL = st.secrets.get("APPS_SCRIPT_URL", "PASTE_YOUR_WEB_APP_URL_HERE")
+APPS_SCRIPT_URL = st.secrets.get("", "https://script.google.com/macros/s/AKfycbx036BA72UMOWJ82133VMqXCT_n6SFHPpZYV4KvKbbSx-tHeR37jSYYKQPFH82NbH0/exec")
 
 # Custom CSS for Professional Look, Print Styling & Dynamic Streak Glow
 st.markdown(
@@ -42,7 +42,7 @@ st.markdown(
 
 # ==================== GOOGLE SHEETS SYNC HELPERS ====================
 def sync_leads_to_google_sheet(rows_list):
-    if not APPS_SCRIPT_URL or "PASTE_YOUR_WEB_APP_URL" in APPS_SCRIPT_URL:
+    if not APPS_SCRIPT_URL or "https://script.google.com/macros/s/AKfycbx036BA72UMOWJ82133VMqXCT_n6SFHPpZYV4KvKbbSx-tHeR37jSYYKQPFH82NbH0/exec" in APPS_SCRIPT_URL:
         return False
     try:
         resp = requests.post(APPS_SCRIPT_URL, json={"rows": rows_list}, timeout=15)
@@ -51,7 +51,7 @@ def sync_leads_to_google_sheet(rows_list):
         return False
 
 def fetch_leads_from_google_sheet(taluka=None, area=None, category=None):
-    if not APPS_SCRIPT_URL or "PASTE_YOUR_WEB_APP_URL" in APPS_SCRIPT_URL:
+    if not APPS_SCRIPT_URL or "https://script.google.com/macros/s/AKfycbx036BA72UMOWJ82133VMqXCT_n6SFHPpZYV4KvKbbSx-tHeR37jSYYKQPFH82NbH0/exec" in APPS_SCRIPT_URL:
         return pd.DataFrame()
     try:
         resp = requests.get(APPS_SCRIPT_URL, timeout=15)
