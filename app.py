@@ -740,7 +740,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
     )
     pitch_language = st.sidebar.selectbox("🌐 पिच्चची भाषा निवडा (Pitch Language)", ["Marathi (मराठी)", "Hindi (हिंदी)", "English"])
 
-# ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
+    # ==================== LEADERBOARD & STREAK TRACKER (FROM DB) ====================
     st.sidebar.markdown("---")
     st.sidebar.subheader("👑 King of the Day / Streak Tracker")
 
@@ -768,6 +768,7 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
             conn.commit()
             st.sidebar.success("✅ Attendance marked!")
             st.rerun()
+
     cursor.execute("SELECT member_name, leads, today_leads, streak, worked_today FROM team_activity")
     db_team_data = cursor.fetchall()
     
@@ -933,12 +934,14 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Businesses Found", len(df))
-       if "AI Score" in df.columns:
-          hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
-      else:
-          hot_count = 0   
-      col2.metric("🔥 AI High Priority Clients", hot_count)           
-      col3.metric("Target Area", selected_area)
+        
+        if "AI Score" in df.columns:
+            hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
+        else:
+            hot_count = 0
+            
+        col2.metric("🔥 AI High Priority Clients", hot_count)
+        col3.metric("Target Area", selected_area)
 
         cursor.execute("SELECT business_name, status, remark FROM followups")
         db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
@@ -1152,7 +1155,7 @@ st.markdown(
                 <p style="font-size: 13px; line-height: 1.6; color: #E0E0E0;">
                     <b>फोन:</b> +91 9172082052<br>
                     <b>ईमेल:</b> the.ak.media56@gmail.com<br>
-                    <b>ऑफिस:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad, Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
+                    <b>ऑफिस:</b> The AK Media, Near Guru Cake, In Front of Vitthal Rukmini Dental Clinic, Dhawkhar Nagar, Chandwad Tal. Chandwad, Dist. Nashik, Maharashtra - 423101
                 </p>
             </div>
         </div>
