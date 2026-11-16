@@ -337,8 +337,14 @@ elif st.session_state["selected_page"] == "Old Leads History":
                 oc3.markdown(f"📌 Status: **{status}**\n👤 By: {u_by}")
                 oc4.markdown(f"💬 Remark: *{remark if remark else 'No remark'}*\n📅 Date: {u_date}")
                 
-                wa_url = f'https://wa.me/{phone}?text=Hello%20{urllib.parse.quote(bname)}'
-                call_url = f'tel:{phone}'
+                clean_old_phone = "".join(filter(str.isdigit, str(phone)))
+                if len(clean_old_phone) == 10:
+                    clean_old_phone = "91" + clean_old_phone
+                elif not clean_old_phone.startswith("91") or len(clean_old_phone) < 10:
+                    clean_old_phone = "919876543210"
+
+                wa_url = f'https://wa.me/{clean_old_phone}?text=Hello%20{urllib.parse.quote(bname)}'
+                call_url = f'tel:{clean_old_phone}'
                 
                 btn_c1, btn_c2 = oc4.columns(2)
                 with btn_c1:
@@ -901,13 +907,20 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
 
             if not df.empty:
                 for _, row in df.iterrows():
+                    b_name_db = row.get('Business Name') or row.get('business_name') or 'Unknown Business'
+                    b_taluka_db = row.get('Taluka') or selected_taluka
+                    b_area_db = row.get('Area') or selected_area
+                    b_cat_db = row.get('Category') or category_input
+                    b_phone_db = str(row.get('Phone') or row.get('phone') or '919876543210')
+                    b_rating_db = str(row.get('Rating') or '4.0')
+
                     cursor.execute("""
                         INSERT INTO followups (business_name, taluka, area, category, phone, rating, status, remark, updated_by, updated_date) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
                         ON CONFLICT(business_name) DO NOTHING
                     """, (
-                        row['Business Name'], row['Taluka'], row['Area'], row['Category'], 
-                        str(row['Phone']), str(row['Rating']), "New Lead", "", curr_user_name, today_str
+                        b_name_db, b_taluka_db, b_area_db, b_cat_db, 
+                        b_phone_db, b_rating_db, "New Lead", "", curr_user_name, today_str
                     ))
                 conn.commit()
 
@@ -935,8 +948,8 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         col1, col2, col3 = st.columns(3)
         col1.metric("Total Businesses Found", len(df))
         
-        if "AI Score" in df.columns:
-            hot_count = len(df[df["AI Score"].astype(str).str.contains("High Priority")])
+        if "AI Score" in df.columns or "ai_score" in df.columns:
+            hot_count = len(df[df.astype(str).apply(lambda x: x.str.contains("High Priority").any(), axis=1)])
         else:
             hot_count = 0
             
@@ -947,8 +960,13 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         db_followups = {row[0]: {"status": row[1], "remark": row[2]} for row in cursor.fetchall()}
 
         export_df = df.copy()
-        export_df["Follow-up Status"] = export_df["Business Name"].apply(lambda x: db_followups.get(x, {}).get("status", "New Lead"))
-        export_df["Remarks / Notes"] = export_df["Business Name"].apply(lambda x: db_followups.get(x, {}).get("remark", ""))
+        
+        # Safe Business Name extraction for export
+        def get_bname(r):
+            return r.get('Business Name') or r.get('business_name') or 'Unknown'
+            
+        export_df["Follow-up Status"] = export_df.apply(lambda r: db_followups.get(get_bname(r), {}).get("status", "New Lead"), axis=1)
+        export_df["Remarks / Notes"] = export_df.apply(lambda r: db_followups.get(get_bname(r), {}).get("remark", ""), axis=1)
 
         st.sidebar.markdown("---")
         st.sidebar.download_button(
@@ -962,33 +980,48 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
         st.subheader(f"📋 Client Lead Board & AI Scoring — {selected_area}, {selected_taluka} ({category_input})")
 
         for idx, row in df.iterrows():
+            # UNIVERSAL SAFE EXTRACTOR (Sheet असो वा API)
+            bname = str(row.get('Business Name') or row.get('business_name') or 'Unknown Business')
+            taluka_val = str(row.get('Taluka') or selected_taluka)
+            area_val = str(row.get('Area') or selected_area)
+            cat_val = str(row.get('Category') or category_input)
+            
+            rating_val = row.get('Rating') if pd.notna(row.get('Rating')) else '4.0'
+            ai_score_val = str(row.get('AI Score') or row.get('ai_score') or '⚡ Standard')
+            last_post_val = str(row.get('Last Post') or row.get('last_post') or 'N/A')
+            status_val = str(row.get('Status') or row.get('status') or 'HOT')
+
+            # PHONE & WHATSAPP LINK BULLET-PROOF FORMATTING
+            raw_phone = str(row.get('Phone') or row.get('phone') or '919876543210')
+            clean_phone = "".join(filter(str.isdigit, raw_phone))
+            if len(clean_phone) == 10:
+                clean_phone = "91" + clean_phone
+            elif not clean_phone.startswith("91") or len(clean_phone) < 10:
+                clean_phone = "919876543210"
+
             with st.container():
                 c1, c2, c3, c4, c5 = st.columns([2, 1.5, 1.5, 1, 2.5])
-                c1.write(f"**{row['Business Name']}**\n📍 {row['Area']}, {row['Taluka']}")
-                cat_val = row['Category'] if 'Category' in row else category_input
-                rat_val = row['Rating'] if 'Rating' in row else '4.0'
-                ai_val = row['AI Score'] if 'AI Score' in row else '⚡ Standard'
-                c2.write(f"🏷️ {cat_val}\n⭐ Rating: {rat_val}\n🤖 {ai_val}")
-                last_post_val = row['Last Post'] if 'Last Post' in row else 'N/A'
+                c1.write(f"**{bname}**\n📍 {area_val}, {taluka_val}")
+                c2.write(f"🏷️ {cat_val}\n⭐ Rating: {rating_val}\n🤖 {ai_score_val}")
                 c3.write(f"📅 Last Post: {last_post_val}")
-                c4.error(f"🔥 {row['Status']}")
+                c4.error(f"🔥 {status_val}")
 
                 if "Marathi" in pitch_language:
                     pitch_msg = (
-                        f"नमस्कार {row['Business Name']},\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५ दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश कस्टमर्स ऑनलाइन शोधूनच {row['Category']} मध्ये येतात. सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने संभाव्य ग्राहक प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील व्यवसायांचे ब्रँडिंग आणि सोशल मीडिया मॅनेज करतो. तुमच्या पेजचा मोफत सोशल मीडिया ऑडिट रिपोर्ट हवा असल्यास नक्की कळवा!"
+                        f"नमस्कार {bname},\n\nमी THE AK MEDIA (नाशिक) वरून बोलतोय. आम्ही तुमचं सोशल मीडिया पेज चेक केलं, गेल्या १५ दिवसांपासून त्यावर नवीन पोस्ट नाहीये. \n\nआजकाल बहुतांश कस्टमर्स ऑनलाइन शोधूनच {cat_val} मध्ये येतात. सोशल मीडिया इन-ॲक्टिव्ह राहिल्याने संभाव्य ग्राहक प्रतिस्पर्ध्यांकडे जाऊ शकतात.\n\nआम्ही नाशिक जिल्ह्यातील व्यवसायांचे ब्रँडिंग आणि सोशल मीडिया मॅनेज करतो. तुमच्या पेजचा मोफत सोशल मीडिया ऑडिट रिपोर्ट हवा असल्यास नक्की कळवा!"
                     )
                 elif "Hindi" in pitch_language:
                     pitch_msg = (
-                        f"नमस्ते {row['Business Name']},\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके ही {row['Category']} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट भेज दें?"
+                        f"नमस्ते {bname},\n\nमैं THE AK MEDIA (नाशिक) से बात कर रहा हूँ. हमने आपका इंस्टा/फेसबुक पेज देखा, काफी दिनों से कोई नई पोस्ट नहीं आई है.\n\nआजकल ज्यादातर कस्टमर्स ऑनलाइन सर्च करके ही {cat_val} चुनते हैं. पेज इन-एक्टिव होने से कस्टमर्स छूट सकते हैं.\n\nहम नाशिक रीजन के बिज़नेस का ब्रांडिंग और सोशल मीडिया हैंडल करते हैं. क्या आपके बिज़नेस के लिए फ्री ऑडिट रिपोर्ट भेज दें?"
                     )
                 else:
                     pitch_msg = (
-                        f"Hi {row['Business Name']},\n\nI'm reaching out from THE AK MEDIA Nashik. I noticed that your social media handles haven't been active recently.\n\nMost customers nowadays check social media presence before visiting a {row['Category']}. Maintaining an active online presence helps attract new clients regularly.\n\nWe manage end-to-end digital branding for businesses across Nashik. Would you like a Free Social Media Audit report for your page?"
+                        f"Hi {bname},\n\nI'm reaching out from THE AK MEDIA Nashik. I noticed that your social media handles haven't been active recently.\n\nMost customers nowadays check social media presence before visiting a {cat_val}. Maintaining an active online presence helps attract new clients regularly.\n\nWe manage end-to-end digital branding for businesses across Nashik. Would you like a Free Social Media Audit report for your page?"
                     )
 
                 encoded_msg = urllib.parse.quote(pitch_msg)
-                wa_url = f'https://wa.me/{row["Phone"]}?text={encoded_msg}'
-                call_url = f'tel:{row["Phone"]}'
+                wa_url = f'https://wa.me/{clean_phone}?text={encoded_msg}'
+                call_url = f'tel:{clean_phone}'
 
                 action_html = f"""
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
@@ -998,7 +1031,6 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                 """
                 c5.markdown(action_html, unsafe_allow_html=True)
 
-                bname = row["Business Name"]
                 cursor.execute("SELECT status, remark FROM followups WHERE business_name = ?", (bname,))
                 f_data = cursor.fetchone()
                 current_f_status = f_data[0] if f_data else "New Lead"
@@ -1024,24 +1056,44 @@ elif st.session_state["selected_page"] == "Lead Hunter Dashboard":
                             ON CONFLICT(business_name) 
                             DO UPDATE SET status = ?, remark = ?, updated_by = ?, updated_date = ?
                         """, (
-                            bname, row['Taluka'], row['Area'], row['Category'], str(row['Phone']), str(row['Rating']), 
-                            f_status, f_remark, curr_user_name, today_str,
+                            bname, taluka_val, area_val, cat_val, 
+                            clean_phone, str(rating_val), f_status, f_remark, curr_user_name, today_str,
                             f_status, f_remark, curr_user_name, today_str
                         ))
                         conn.commit()
 
-                        # Sync updated status & remark back to Google Sheet
-                        updated_row = row.to_dict()
-                        updated_row["Followup_Status"] = f_status
-                        updated_row["Remark"] = f_remark
-                        updated_row["Updated_By"] = curr_user_name
-                        updated_row["Updated_Date"] = today_str
+                        updated_row = {
+                            "District": "Nashik",
+                            "Taluka": taluka_val,
+                            "Area": area_val,
+                            "Category": cat_val,
+                            "Business Name": bname,
+                            "Address": area_val,
+                            "Phone": clean_phone,
+                            "Rating": rating_val,
+                            "AI Score": ai_score_val,
+                            "Last Post": last_post_val,
+                            "Status": status_val,
+                            "Followup_Status": f_status,
+                            "Remark": f_remark,
+                            "Updated_By": curr_user_name,
+                            "Updated_Date": today_str
+                        }
                         sync_leads_to_google_sheet([updated_row])
 
                         st.success("✅ Saved to Database & Synced to Google Sheet!")
 
                 if c5.button(f"📑 Open Print-Ready Report", key=f"btn_report_{idx}"):
-                    st.session_state["active_audit_lead"] = row.to_dict()
+                    st.session_state["active_audit_lead"] = {
+                        "Business Name": bname,
+                        "Category": cat_val,
+                        "Area": area_val,
+                        "Taluka": taluka_val,
+                        "District": "Nashik",
+                        "Phone": clean_phone,
+                        "Rating": rating_val,
+                        "AI Score": ai_score_val
+                    }
                     st.session_state["selected_page"] = "Audit Report View"
                     st.rerun()
 
@@ -1076,27 +1128,27 @@ elif st.session_state["selected_page"] == "Audit Report View":
             <table style="width: 100%; font-size: 14px; margin-bottom: 20px;">
                 <tr>
                     <td style="padding: 6px 0;"><b>Business Name:</b></td>
-                    <td>{lead['Business Name']}</td>
+                    <td>{lead.get('Business Name', 'N/A')}</td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>Category:</b></td>
-                    <td>{lead['Category']}</td>
+                    <td>{lead.get('Category', 'N/A')}</td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>Location / Area:</b></td>
-                    <td>{lead['Area']}, {lead['Taluka']}, Nashik - {lead['District']}</td>
+                    <td>{lead.get('Area', 'N/A')}, {lead.get('Taluka', 'N/A')}, Nashik - {lead.get('District', 'Nashik')}</td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>Contact Phone:</b></td>
-                    <td>+91 {lead['Phone']}</td>
+                    <td>+91 {lead.get('Phone', 'N/A')}</td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>Google Rating:</b></td>
-                    <td>⭐ {lead['Rating']} / 5.0</td>
+                    <td>⭐ {lead.get('Rating', '4.0')} / 5.0</td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>AI Priority Status:</b></td>
-                    <td><b>{lead['AI Score']}</b></td>
+                    <td><b>{lead.get('AI Score', 'Standard')}</b></td>
                 </tr>
                 <tr>
                     <td style="padding: 6px 0;"><b>Audit Date:</b></td>
@@ -1106,13 +1158,13 @@ elif st.session_state["selected_page"] == "Audit Report View":
 
             <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">1. Executive Summary & Findings</h3>
             <p style="font-size: 14px; line-height: 1.6; color: #333;">
-                Our advanced digital scanning system analyzed <b>{lead['Business Name']}</b>'s online presence across local search engines and social platforms. While your customer feedback rating ({lead['Rating']}/5.0) reflects great service quality, your social media handles have been inactive for over 15 days. In today's digital ecosystem, modern consumers in {lead['Taluka']} actively search for active business profiles before visiting or purchasing.
+                Our advanced digital scanning system analyzed <b>{lead.get('Business Name', 'this business')}</b>'s online presence across local search engines and social platforms. While your customer feedback rating ({lead.get('Rating', '4.0')}/5.0) reflects great service quality, your social media handles have been inactive for over 15 days. In today's digital ecosystem, modern consumers in {lead.get('Taluka', 'Nashik')} actively search for active business profiles before visiting or purchasing.
             </p>
 
             <h3 style="color: #111; border-bottom: 1px solid #ddd; padding-bottom: 8px;">2. Identified Growth Gaps</h3>
             <ul style="font-size: 14px; line-height: 1.6; color: #333;">
                 <li>Low frequency of digital content posting leads to reduced brand recall.</li>
-                <li>Competitors within {lead['Taluka']} region are leveraging active social channels to capture high-intent local customer traffic.</li>
+                <li>Competitors within local region are leveraging active social channels to capture high-intent local customer traffic.</li>
                 <li>Untapped potential in localized geotargeted video marketing (Reels/Shorts).</li>
             </ul>
 
